@@ -1,4 +1,16 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rockbox Wrapped</title>
+<meta name="description" content="A Spotify Wrapped–style year in review from your Rockbox iPod's playback log. Runs in your browser; nothing is uploaded.">
+<meta property="og:title" content="Rockbox Wrapped">
+<meta property="og:description" content="Your year in music from the playback log your Rockbox iPod already keeps.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://michaelmeixner.github.io/rockbox_wrapped/">
+<meta name="theme-color" content="#127a3c">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23127a3c'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='%23ffe15a'/%3E%3Crect x='14' y='9' width='4' height='16' rx='1' fill='%23fff'/%3E%3Crect x='21' y='13' width='4' height='12' rx='1' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -73,14 +85,22 @@ footer .wrap { padding-block: 28px 40px; display: grid; gap: 12px; color: var(--
 footer pre { font: .78rem var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 0; max-height: 220px }
 .empty .wrap { padding-block: 40px }
 @media (prefers-reduced-motion: no-preference) { ol.rank .bar i { transition: width .5s ease } }
+a { color: var(--accent); text-underline-offset: 2px }
+.links { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 500 .85rem var(--mono) }
 </style>
+</head>
+<body>
 
 <header>
   <div class="wrap">
     <h1>Rockbox Wrapped</h1>
     <p class="lede">Your year in music from the playback log your iPod already keeps. Everything is read in this page; nothing is uploaded.</p>
+    <nav class="links" aria-label="Project">
+      <a href="https://github.com/michaelmeixner/rockbox_wrapped/releases/latest">Get the iPod plugin</a>
+      <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>
+    </nav>
     <div class="drop" id="drop">
-      <p>Drop <code>playback.log</code>, any <code>playback_0001.log</code> files, or <code>wrapped_history.log</code> from your player's <code>.rockbox</code> folder.</p>
+      <p>Drop <code>wrapped_history.log</code> (best, because it includes your tags), <code>playback.log</code>, or any <code>playback_0001.log</code> files from your iPod's <code>.rockbox</code> folder. You can drop several at once.</p>
       <label class="btn primary" for="file">Choose log files</label>
       <input type="file" id="file" multiple accept=".log,.txt,text/plain">
     </div>
@@ -99,6 +119,7 @@ footer pre { font: .78rem var(--mono); background: var(--panel); border: 1px sol
     </div>
     <pre id="summary" aria-label="Summary text"></pre>
     <p>Counting rules match the iPod plugin: a play is 30 seconds or more, a stop-and-resume of the same track counts once. Audiobooks and podcasts are left out: anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code>. Artist, album and title come from the tags the plugin saves in <code>wrapped_history.log</code>; a raw <code>playback.log</code> stores only file paths, so for those plays they come from the <code>/Artist/Album/Track</code> folders.</p>
+    <p>Rockbox Wrapped by Michael Meixner · <a href="https://github.com/michaelmeixner/rockbox_wrapped">source on GitHub</a> · GPL v2 or later. Not affiliated with Rockbox or Spotify.</p>
   </div>
 </footer>
 
@@ -431,3 +452,5 @@ $("#copy").addEventListener("click", async () => {
 entries = sampleEntries(); period = 2026;
 renderControls(); render();
 </script>
+</body>
+</html>

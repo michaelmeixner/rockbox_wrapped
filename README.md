@@ -73,12 +73,18 @@ root of the iPod. Without these fonts, Wrapped uses your normal UI font.
   back to an old date when the battery runs flat), plays are still saved, but
   they count under the date the iPod thought it was.
 
-## Desktop version
+## Web version
 
-Drop `wrapped_history.log` (or `playback.log`) onto the Rockbox Wrapped web page
-for the same stats with charts and a daily heatmap. It uses the tags saved in
-`wrapped_history.log`. A raw `playback.log` has only file paths, so plays from
-it use folder names.
+**[michaelmeixner.github.io/rockbox_wrapped](https://michaelmeixner.github.io/rockbox_wrapped/)**
+
+Open it on a computer and drop in `wrapped_history.log` from your iPod's
+`.rockbox` folder. It shows the same stats, plus charts and a daily heatmap.
+Your log is read in the browser and never uploaded. It opens with sample data
+until you load your own log.
+
+It uses the tags the plugin saves in `wrapped_history.log`. A raw
+`playback.log` has only file paths, so plays from it are named from their
+folders. The page's source is [docs/index.html](docs/index.html).
 
 ## Building from source
 
