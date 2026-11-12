@@ -1,0 +1,15 @@
+# private build notes
+rockbox-wrapped-notes.md
+
+# compiled plugins: publish these on a GitHub Release instead
+builds/
+*.rock
+
+# headline fonts come from the Rockbox font pack (see README)
+*.fnt
+
+# OS and editor clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/

@@ -1,0 +1,433 @@
+<title>Rockbox Wrapped</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a stack of full-width colour bands, one per stat, the same palette the iPod plugin uses for its slides */
+:root {
+  --bg: #eef0ee;
+  --fg: #151816;
+  --muted: #5b625d;
+  --line: #cfd4d0;
+  --panel: #ffffff;
+  --accent: #127a3c;
+  --b-green: #127a3c; --b-violet: #462aaa; --b-magenta: #aa1e5a;
+  --b-char: #1b1d1c; --b-orange: #b4500f; --b-blue: #14509f;
+  --on-band: #ffffff; --on-band-dim: rgba(255,255,255,.72); --band-gold: #ffe15a;
+  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101211; --fg: #e8ebe9; --muted: #9aa29d; --line: #2a2e2c; --panel: #181b19; --accent: #3fcf78;
+  --b-char: #232726; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #101211; --fg: #e8ebe9; --muted: #9aa29d; --line: #2a2e2c; --panel: #181b19; --accent: #3fcf78;
+  --b-char: #232726; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--fg); font-family: var(--display); font-size: 16px; line-height: 1.45 }
+.wrap { max-width: 880px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+header .wrap { padding-block: 28px 18px; display: grid; gap: 14px }
+h1 { font-size: clamp(2rem, 6vw, 3.2rem); font-weight: 800; line-height: 1; margin: 0; letter-spacing: -.02em; text-wrap: balance }
+.lede { margin: 0; color: var(--muted); max-width: 60ch }
+.mono, code { font-family: var(--mono); font-size: .86em }
+
+.drop { border: 1.5px dashed var(--line); background: var(--panel); border-radius: 10px; padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between }
+.drop.over { border-color: var(--accent) }
+.drop p { margin: 0; min-width: 0; flex: 1 1 260px; font-size: .95rem }
+.btn { font: 500 .9rem var(--mono); border: 1.5px solid var(--fg); background: transparent; color: var(--fg); border-radius: 6px; padding: 8px 14px; cursor: pointer }
+.btn.primary { background: var(--fg); color: var(--bg) }
+.btn:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0 }
+.status { font: .82rem var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px }
+.status .tag { color: var(--accent); font-weight: 500 }
+.chips { display: flex; flex-wrap: wrap; gap: 8px }
+.chip { font: 500 .85rem var(--mono); padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer }
+.chip[aria-pressed=true] { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+
+.band { color: var(--on-band) }
+.band .wrap { padding-block: 34px; display: grid; gap: 10px }
+.green { background: var(--b-green) } .violet { background: var(--b-violet) } .magenta { background: var(--b-magenta) }
+.char { background: var(--b-char) } .orange { background: var(--b-orange) } .blue { background: var(--b-blue) }
+.eyebrow { font: 500 .78rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--band-gold) }
+.big { font-size: clamp(3rem, 13vw, 6.5rem); font-weight: 800; line-height: .92; letter-spacing: -.035em; margin: 0; overflow-wrap: anywhere; text-wrap: balance }
+.big.name { font-size: clamp(2.2rem, 9vw, 4.6rem) }
+.sub { color: var(--on-band-dim); margin: 0; font-size: 1.05rem }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px }
+.cols > * { min-width: 0 }
+ol.rank { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 10px }
+ol.rank li { display: grid; grid-template-columns: 1.6em 1fr; gap: 4px 8px; align-items: baseline }
+ol.rank .n { font: 500 .85rem var(--mono); color: var(--band-gold) }
+ol.rank .t { font-weight: 800; font-size: 1.12rem; overflow-wrap: anywhere }
+ol.rank .m { grid-column: 2; font: .8rem var(--mono); color: var(--on-band-dim) }
+ol.rank .bar { grid-column: 2; height: 4px; background: rgba(255,255,255,.18); border-radius: 2px }
+ol.rank .bar i { display: block; height: 100%; background: var(--on-band); border-radius: 2px }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px 24px; margin-top: 8px }
+.facts div { display: grid; gap: 2px }
+.facts b { font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums }
+.facts span { font: .78rem var(--mono); color: var(--on-band-dim) }
+.chart { overflow-x: auto }
+.chart svg { display: block; width: 100%; min-width: 520px; height: auto }
+.chart.bars svg { min-width: 0 }
+.chart svg text { font-family: var(--mono); font-size: 11px; fill: var(--on-band-dim) }
+footer .wrap { padding-block: 28px 40px; display: grid; gap: 12px; color: var(--muted); font-size: .9rem }
+footer pre { font: .78rem var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 0; max-height: 220px }
+.empty .wrap { padding-block: 40px }
+@media (prefers-reduced-motion: no-preference) { ol.rank .bar i { transition: width .5s ease } }
+</style>
+
+<header>
+  <div class="wrap">
+    <h1>Rockbox Wrapped</h1>
+    <p class="lede">Your year in music from the playback log your iPod already keeps. Everything is read in this page; nothing is uploaded.</p>
+    <div class="drop" id="drop">
+      <p>Drop <code>playback.log</code>, any <code>playback_0001.log</code> files, or <code>wrapped_history.log</code> from your player's <code>.rockbox</code> folder.</p>
+      <label class="btn primary" for="file">Choose log files</label>
+      <input type="file" id="file" multiple accept=".log,.txt,text/plain">
+    </div>
+    <div class="status" id="status"></div>
+    <div class="chips" id="years" role="group" aria-label="Period"></div>
+  </div>
+</header>
+
+<main id="out"></main>
+
+<footer>
+  <div class="wrap">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="copy" type="button">Copy summary as text</button>
+      <span id="copied" class="mono"></span>
+    </div>
+    <pre id="summary" aria-label="Summary text"></pre>
+    <p>Counting rules match the iPod plugin: a play is 30 seconds or more, a stop-and-resume of the same track counts once. Audiobooks and podcasts are left out: anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code>. Artist, album and title come from the tags the plugin saves in <code>wrapped_history.log</code>; a raw <code>playback.log</code> stores only file paths, so for those plays they come from the <code>/Artist/Album/Track</code> folders.</p>
+  </div>
+</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const fmt = n => Math.round(n).toLocaleString("en-US");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let entries = [], isSample = true, period = null, sources = [];
+
+/* ---------- parsing ---------- */
+function parseText(txt, map) {
+  let n = 0;
+  for (const raw of txt.split("\n")) {
+    // history v2 lines carry tags after the path: \tartist\talbumartist\talbum\ttitle\tgenre
+    const m = /^ ?(\d+):(\d+):(\d+):(\/[^\t\r]*)(?:\t([^\r]*))?\r?$/.exec(raw);
+    if (!m) continue;
+    const ts = +m[1], length = +m[3], path = m[4];
+    const tags = m[5] !== undefined ? m[5].split("\t") : null;
+    let elapsed = +m[2];
+    if (length > 0 && elapsed > length) elapsed = length;
+    const key = ts + "|" + path;
+    const old = map.get(key);
+    if (!old) { map.set(key, { ts, elapsed, length, path, tags }); n++; }
+    else if (tags && !old.tags) old.tags = tags;  // same play from playback.log and history
+  }
+  return n;
+}
+
+const tagSet = s => !!s && s !== "<Untagged>";
+
+// mirrors load_metadata() in wrapped.c: tags first, folder names as fallback
+function meta(path, tags) {
+  const seg = path.split("/").filter(Boolean);
+  let title = (seg[seg.length - 1] || path).replace(/\.[^.]+$/, "");
+  const t2 = title.replace(/^\d{1,3}[ ._-]+/, "");
+  if (t2) title = t2;
+  let artist = seg.length >= 3 ? seg[seg.length - 3] : "";
+  let album = seg.length >= 3 ? seg[seg.length - 2] : "";
+  const [tArtist, tAlbumArtist, tAlbum, tTitle, tGenre] = tags || [];
+  if (tagSet(tArtist)) artist = tArtist;
+  else if (tagSet(tAlbumArtist)) artist = tAlbumArtist;
+  if (tagSet(tAlbum)) album = tAlbum;
+  if (tagSet(tTitle)) title = tTitle;
+  if (!artist) artist = "Unknown artist";
+  // credit every artist in "A; B" (like Spotify); album is by its album artist, else the first one
+  let artists = splitNames(artist);
+  if (!artists.length) artists = ["Unknown artist"];
+  const by = tagSet(tAlbumArtist) ? splitNames(tAlbumArtist) : [];
+  return { title, album, artist: artists.join(", "), artists, albumArtist: by.length ? by.join(", ") : artists[0], genre: tagSet(tGenre) ? tGenre : "" };
+}
+
+// mirrors split_names() in wrapped.c: only ';' splits, so "AC/DC" and "Simon & Garfunkel" stay whole
+const splitNames = s => [...new Set(s.split(";").map(x => x.replace(/^ +| +$/g, "")).filter(Boolean))].slice(0, 6);
+
+// mirrors is_spoken_word() in wrapped.c: audiobooks and podcasts aren't music
+const SPOKEN_GENRE = /audio ?book|spoken|podcast/i;
+const SPOKEN_DIR = /^(audio ?books?|podcasts?)$/i;
+function isSpoken(e) {
+  if (e.tags && SPOKEN_GENRE.test(e.tags[4] || "")) return true;
+  if (e.path.split("/").slice(1, -1).some(s => SPOKEN_DIR.test(s))) return true;
+  return /\.m4b$/i.test(e.path);
+}
+
+/* ---------- stats (mirrors wrapped.c) ---------- */
+function compute(list, year) {
+  const start = year ? Date.UTC(year, 0, 1) / 1000 : 0;
+  const end = year ? Date.UTC(year + 1, 0, 1) / 1000 : Infinity;
+  const tracks = new Map();
+  const S = { year, totalMs: 0, plays: 0, skips: 0, spokenSkipped: 0, hour: Array(24).fill(0), wday: Array(7).fill(0), month: Array(12).fill(0), day: new Map(), first: null, firstTs: Infinity };
+  let prev = null, playMs = 0, counted = false;
+  for (const e of list) {
+    if (e.ts < start || e.ts >= end) continue;
+    if (isSpoken(e)) { S.spokenSkipped++; prev = null; continue; }  // also breaks a resume chain
+    let t = tracks.get(e.path);
+    if (!t) { t = { path: e.path, plays: 0, ms: 0, ...meta(e.path, e.tags) }; tracks.set(e.path, t); }
+    else if (e.tags) Object.assign(t, meta(e.path, e.tags));  // newest tags win
+    const resume = prev && prev.path === e.path && prev.length === e.length &&
+      prev.elapsed < Math.floor(prev.length / 100) * 90 && e.elapsed >= prev.elapsed;
+    let delta;
+    if (resume) { delta = e.elapsed - prev.elapsed; playMs += delta; }
+    else {
+      delta = e.elapsed; playMs = delta; counted = false;
+      if (e.elapsed < 30000 && e.length > 30000) S.skips++;
+    }
+    prev = e;
+    if (delta <= 0) continue;
+    S.totalMs += delta; t.ms += delta;
+    if (!counted && playMs >= 30000) {
+      counted = true; S.plays++; t.plays++;
+      if (e.ts < S.firstTs) { S.firstTs = e.ts; S.first = t; }
+    }
+    const d = new Date(e.ts * 1000), sec = delta / 1000;
+    S.hour[d.getUTCHours()] += sec; S.wday[d.getUTCDay()] += sec; S.month[d.getUTCMonth()] += sec;
+    const dn = Math.floor(e.ts / 86400);
+    S.day.set(dn, (S.day.get(dn) || 0) + sec);
+  }
+  const artists = new Map(), albums = new Map();
+  for (const t of tracks.values()) {
+    for (const name of t.artists) {  // a song counts in full for each credited artist
+      const a = artists.get(name) || { name, ms: 0, plays: 0 };
+      a.ms += t.ms; a.plays += t.plays; artists.set(name, a);
+    }
+    if (t.album) {
+      const k = t.album + "\u0001" + t.albumArtist;
+      const b = albums.get(k) || { name: t.album, artist: t.albumArtist, ms: 0, plays: 0 };
+      b.ms += t.ms; b.plays += t.plays; albums.set(k, b);
+    }
+  }
+  const byPlays = (a, b) => b.plays - a.plays || b.ms - a.ms;
+  const byMs = (a, b) => b.ms - a.ms || b.plays - a.plays;
+  S.tracks = [...tracks.values()].filter(t => t.plays).sort(byPlays);
+  S.artists = [...artists.values()].filter(a => a.plays).sort(byMs);
+  S.albums = [...albums.values()].filter(a => a.plays).sort(byMs);
+  S.uniqueTracks = tracks.size; S.nArtists = artists.size; S.nAlbums = albums.size;
+  const days = [...S.day.keys()].sort((a, b) => a - b);
+  S.bestDay = null; S.bestSec = 0; S.streak = 0;
+  let run = 0, last = null;
+  for (const d of days) {
+    const v = S.day.get(d);
+    if (v > S.bestSec) { S.bestSec = v; S.bestDay = d; }
+    run = last !== null && d === last + 1 ? run + 1 : 1;
+    last = d; S.streak = Math.max(S.streak, run);
+  }
+  return S;
+}
+
+/* ---------- sample data ---------- */
+function sampleEntries() {
+  let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const lib = [
+    ["Phoebe Bridgers", "Punisher", ["Garden Song", "Kyoto", "Moon Song", "I Know the End"]],
+    ["Radiohead", "In Rainbows", ["15 Step", "Nude", "Reckoner", "Weird Fishes"]],
+    ["Big Thief", "Dragon New Mountain", ["Change", "Spud Infinity", "Simulation Swarm"]],
+    ["Kendrick Lamar", "GNX", ["squabble up", "tv off", "luther"]],
+    ["Fleetwood Mac", "Rumours", ["Dreams", "The Chain", "Go Your Own Way"]],
+    ["Bon Iver", "22, A Million", ["22 (OVER SOON)", "33 GOD", "8 (circle)"]],
+  ];
+  const tr = [];
+  lib.forEach(([ar, al, ts]) => ts.forEach((t, i) => tr.push({ path: `/Music/${ar}/${al}/${String(i + 1).padStart(2, "0")} ${t}.mp3`, len: (150 + Math.floor(rnd() * 180)) * 1000, w: rnd() ** 2 })));
+  tr[0].w *= 8; tr[5].w *= 5;
+  const tw = tr.reduce((s, t) => s + t.w, 0);
+  const pick = () => { let r = rnd() * tw; for (const t of tr) if ((r -= t.w) <= 0) return t; return tr[0]; };
+  const hw = [1,0,0,0,0,0,1,3,5,4,3,3,4,4,3,3,4,5,6,7,8,6,4,2], hs = hw.reduce((a, b) => a + b);
+  const hour = () => { let r = rnd() * hs; for (let h = 0; h < 24; h++) if ((r -= hw[h]) <= 0) return h; return 20; };
+  const out = [];
+  const gen = (year, lastMonth, sessions) => {
+    for (let s = 0; s < sessions; s++) {
+      const m = Math.floor(rnd() * (lastMonth + 1)), d = 1 + Math.floor(rnd() * 28);
+      let ts = Date.UTC(year, m, d, hour(), Math.floor(rnd() * 60)) / 1000;
+      const n = 1 + Math.floor(rnd() * 8);
+      for (let k = 0; k < n; k++) {
+        const t = pick(), r = rnd();
+        const el = r < .12 ? 1000 + Math.floor(rnd() * 19000) : r < .25 ? 30000 + Math.floor(rnd() * (t.len - 30000)) : t.len;
+        ts += Math.floor(el / 1000) + 2;
+        out.push({ ts, elapsed: el, length: t.len, path: t.path });
+      }
+    }
+  };
+  gen(2025, 11, 300); gen(2026, 9, 420);
+  return out.sort((a, b) => a.ts - b.ts);
+}
+
+/* ---------- rendering ---------- */
+function rankList(items, top, label) {
+  if (!items.length) return "";
+  const max = items[0][top] || 1;
+  return `<ol class="rank">${items.slice(0, 5).map((x, i) => `<li><span class="n">${i + 1}</span><span class="t">${esc(x.title || x.name)}</span><span class="m">${esc(label(x))}</span><span class="bar"><i style="width:${(x[top] / max * 100).toFixed(1)}%"></i></span></li>`).join("")}</ol>`;
+}
+
+function barChart(values, labels, every) {
+  const W = 640, H = 170, pad = 22, max = Math.max(...values, 1), bw = (W - 8) / values.length;
+  const peak = values.indexOf(Math.max(...values));
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Minutes listened">`;
+  values.forEach((v, i) => {
+    const h = (v / max) * (H - pad - 22), x = 4 + i * bw;
+    s += `<rect x="${(x + bw * .15).toFixed(1)}" y="${(H - pad - h).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${Math.max(h, 1).toFixed(1)}" rx="2" fill="${i === peak ? "var(--band-gold)" : "rgba(255,255,255,.55)"}"/>`;
+    if (i % every === 0) s += `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${labels[i]}</text>`;
+  });
+  s += `<text x="${(4 + peak * bw + bw / 2).toFixed(1)}" y="${(H - pad - (values[peak] / max) * (H - pad - 22) - 6).toFixed(1)}" text-anchor="middle" style="fill:var(--band-gold)">${fmt(values[peak] / 60)} min</text>`;
+  return s + "</svg>";
+}
+
+function heatmap(S) {
+  if (!S.year) return "";
+  const startDn = Math.floor(Date.UTC(S.year, 0, 1) / 86400000);
+  const endDn = Math.floor(Date.UTC(S.year + 1, 0, 1) / 86400000);
+  const startDow = new Date(startDn * 86400000).getUTCDay();
+  const c = 11, g = 2, weeks = Math.ceil((endDn - startDn + startDow) / 7);
+  const W = 30 + weeks * (c + g), H = 7 * (c + g) + 22;
+  const max = Math.max(...[...S.day.values()], 1);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Minutes per day">`;
+  for (let dn = startDn; dn < endDn; dn++) {
+    const i = dn - startDn + startDow, wk = Math.floor(i / 7), dw = i % 7, v = S.day.get(dn) || 0;
+    const a = v ? (0.25 + 0.75 * v / max).toFixed(2) : 0.1;
+    s += `<rect x="${30 + wk * (c + g)}" y="${18 + dw * (c + g)}" width="${c}" height="${c}" rx="2" fill="${dn === S.bestDay ? "var(--band-gold)" : `rgba(255,255,255,${a})`}"><title>${new Date(dn * 86400000).toISOString().slice(0, 10)}: ${fmt(v / 60)} min</title></rect>`;
+    const dt = new Date(dn * 86400000);
+    if (dt.getUTCDate() === 1) s += `<text x="${30 + wk * (c + g)}" y="12">${MONTHS[dt.getUTCMonth()].slice(0, 3)}</text>`;
+  }
+  ["Mon", "Wed", "Fri"].forEach((d, k) => s += `<text x="0" y="${18 + (1 + 2 * k) * (c + g) + 9}">${d}</text>`);
+  return s + "</svg>";
+}
+
+function dayName(dn, withYear) {
+  const d = new Date(dn * 86400000);
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}${withYear ? ", " + d.getUTCFullYear() : ""}`;
+}
+
+function render() {
+  const S = compute(entries, period);
+  const label = period ? String(period) : "All time";
+  const out = $("#out");
+  if (!S.plays) {
+    out.innerHTML = `<section class="band char empty"><div class="wrap"><span class="eyebrow">${esc(label)}</span><p class="big name">No plays logged here yet.</p><p class="sub">Turn on Settings, Playback Settings, Logging on the iPod, listen for a while, then drop the log in again.</p></div></section>`;
+    $("#summary").textContent = ""; return;
+  }
+  const min = S.totalMs / 60000, A = S.artists[0], T = S.tracks[0];
+  const h = S.hour.indexOf(Math.max(...S.hour)), h12 = h % 12 || 12;
+  const wd = S.wday.indexOf(Math.max(...S.wday)), mo = S.month.indexOf(Math.max(...S.month));
+  const hours = [...Array(24).keys()].map(i => (i % 12 || 12) + (i < 12 ? "a" : "p"));
+  out.innerHTML = `
+  <section class="band green"><div class="wrap">
+    <span class="eyebrow">${esc(label)} Wrapped${isSample ? " &middot; sample data" : ""}</span>
+    <p class="big">${fmt(min)}</p>
+    <p class="sub">minutes of music, about ${min >= 1440 ? (min / 1440).toFixed(1) + " days" : fmt(min / 60) + " hours"}. ${fmt(S.plays)} plays across ${fmt(S.uniqueTracks)} songs.</p>
+  </div></section>
+  <section class="band violet"><div class="wrap">
+    <span class="eyebrow">Top artist</span>
+    <p class="big name">${esc(A.name)}</p>
+    <p class="sub">${fmt(A.ms / 60000)} minutes, ${fmt(A.plays)} plays, ${Math.round(A.ms / S.totalMs * 100)}% of everything you played.</p>
+  </div></section>
+  <section class="band char"><div class="wrap cols">
+    <div><span class="eyebrow">Top artists</span>${rankList(S.artists, "ms", a => `${fmt(a.ms / 60000)} min · ${fmt(a.plays)} plays`)}</div>
+    <div><span class="eyebrow">Top albums</span>${rankList(S.albums, "ms", a => `${a.artist} · ${fmt(a.ms / 60000)} min`)}</div>
+  </div></section>
+  <section class="band magenta"><div class="wrap cols">
+    <div><span class="eyebrow">${period ? "Song of the year" : "Most played song"}</span>
+      <p class="big name" style="margin-top:6px">${esc(T.title)}</p>
+      <p class="sub">${esc(T.artist)} · played ${fmt(T.plays)} times</p></div>
+    <div><span class="eyebrow">Top songs</span>${rankList(S.tracks, "plays", t => `${t.artist} · ${fmt(t.plays)} plays`)}</div>
+  </div></section>
+  <section class="band orange"><div class="wrap">
+    <span class="eyebrow">Your listening clock</span>
+    <div class="facts">
+      <div><b>${h12} ${h < 12 ? "AM" : "PM"}</b><span>peak hour</span></div>
+      <div><b>${DAYS[wd]}</b><span>favourite day</span></div>
+      <div><b>${MONTHS[mo]}</b><span>biggest month · ${fmt(S.month[mo] / 60)} min</span></div>
+    </div>
+    <div class="chart bars">${barChart(S.hour, hours, 3)}</div>
+    <div class="chart bars">${barChart(S.month, MONTHS.map(m => m.slice(0, 3)), 1)}</div>
+  </div></section>
+  <section class="band blue"><div class="wrap">
+    <span class="eyebrow">Big days</span>
+    <div class="facts">
+      <div><b>${dayName(S.bestDay, !period)}</b><span>most listening in a day · ${fmt(S.bestSec / 60)} min</span></div>
+      <div><b>${S.streak}</b><span>day streak, longest run in a row</span></div>
+      <div><b>${S.day.size}</b><span>days with music</span></div>
+    </div>
+    <div class="chart">${heatmap(S)}</div>
+  </div></section>
+  <section class="band char"><div class="wrap">
+    <span class="eyebrow">By the numbers</span>
+    <div class="facts">
+      <div><b>${fmt(S.uniqueTracks)}</b><span>different songs</span></div>
+      <div><b>${fmt(S.nArtists)}</b><span>artists</span></div>
+      <div><b>${fmt(S.nAlbums)}</b><span>albums</span></div>
+      <div><b>${fmt(S.skips)}</b><span>skips under 30 s</span></div>
+    </div>
+    ${S.first ? `<p class="sub">First song of ${period ? "the year" : "your history"}: <strong style="color:var(--on-band)">${esc(S.first.title)}</strong> by ${esc(S.first.artist)}, ${dayName(Math.floor(S.firstTs / 86400), true)}.</p>` : ""}
+    ${S.spokenSkipped ? `<p class="sub">Audiobooks and podcasts are not counted.</p>` : ""}
+  </div></section>`;
+  $("#summary").textContent = [
+    `${label} Wrapped (Rockbox)`, `${fmt(min)} minutes · ${fmt(S.plays)} plays · ${fmt(S.uniqueTracks)} songs`, "",
+    "Top artists:", ...S.artists.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} (${fmt(a.ms / 60000)} min)`), "",
+    "Top songs:", ...S.tracks.slice(0, 5).map((t, i) => `${i + 1}. ${t.title} - ${t.artist} (${t.plays} plays)`), "",
+    "Top albums:", ...S.albums.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} - ${a.artist}`), "",
+    `Peak hour ${h12} ${h < 12 ? "AM" : "PM"} · favourite day ${DAYS[wd]} · biggest month ${MONTHS[mo]}`,
+    `Biggest day ${dayName(S.bestDay, true)} (${fmt(S.bestSec / 60)} min) · longest streak ${S.streak} days`,
+  ].join("\n");
+}
+
+function renderControls() {
+  const years = [...new Set(entries.map(e => new Date(e.ts * 1000).getUTCFullYear()))].sort((a, b) => b - a);
+  if (period !== 0 && !years.includes(period)) period = years[0] ?? 0;
+  $("#years").innerHTML = [...years, 0].map(y => `<button type="button" class="chip" data-y="${y}" aria-pressed="${y === period}">${y || "All time"}</button>`).join("");
+  let lo = Infinity, hi = -Infinity;
+  for (const e of entries) { if (e.ts < lo) lo = e.ts; if (e.ts > hi) hi = e.ts; }
+  const day = ts => new Date(ts * 1000).toISOString().slice(0, 10);
+  const span = entries.length ? `${day(lo)} to ${day(hi)}` : "";
+  $("#status").innerHTML = isSample
+    ? `<span class="tag">Showing sample data</span><span>Drop your own log to replace it.</span>`
+    : `<span class="tag">${fmt(entries.length)} log entries</span><span>${esc(sources.join(", "))}</span><span>${span}</span>`;
+}
+
+$("#years").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  period = +b.dataset.y; renderControls(); render();
+});
+
+async function loadFiles(files) {
+  const map = new Map(isSample ? [] : entries.map(e => [e.ts + "|" + e.path, e]));
+  if (isSample) sources = [];
+  let added = 0;
+  // Keep file order, not timestamp order: after an iPod clock reset the timestamps are wrong
+  // but the order lines were written is still the real listening order (wrapped.c relies on
+  // the same). Read files in the order the plugin merges them: history, rotated logs, live log.
+  const rank = n => /^wrapped_history/i.test(n) ? 0 : /^playback\.log$/i.test(n) ? 2 : 1;
+  files = [...files].sort((a, b) => rank(a.name) - rank(b.name) || (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1));
+  for (const f of files) { added += parseText(await f.text(), map); sources.push(f.name); }
+  if (!map.size) { $("#status").innerHTML = `<span class="tag">No log entries found</span><span>Pick playback.log from the .rockbox folder on your iPod.</span>`; return; }
+  entries = [...map.values()];
+  isSample = false; period = null;
+  renderControls(); render();
+}
+
+$("#file").addEventListener("change", e => loadFiles([...e.target.files]));
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => loadFiles([...e.dataTransfer.files]));
+
+$("#copy").addEventListener("click", async () => {
+  const text = $("#summary").textContent;
+  try { await navigator.clipboard.writeText(text); $("#copied").textContent = "Copied"; }
+  catch { const r = document.createRange(); r.selectNodeContents($("#summary")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("#copied").textContent = "Selected, press Ctrl+C"; }
+});
+
+entries = sampleEntries(); period = 2026;
+renderControls(); render();
+</script>
