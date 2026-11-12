@@ -75,7 +75,7 @@ root of the iPod. Without these fonts, Wrapped uses your normal UI font.
 
 ## Web version
 
-**[michaelmeixner.github.io/rockbox_wrapped](https://michaelmeixner.github.io/rockbox_wrapped/)**
+**[michaelmeixner.com/rockbox_wrapped](https://www.michaelmeixner.com/rockbox_wrapped/)**
 
 Open it on a computer and drop in `wrapped_history.log` from your iPod's
 `.rockbox` folder. It shows the same stats, plus charts and a daily heatmap.
