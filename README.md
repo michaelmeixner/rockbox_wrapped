@@ -82,14 +82,34 @@ it use folder names.
 
 ## Building from source
 
+You only need this for a Rockbox version without a ready-made download.
+
+The repo has the plugin in two forms:
+
+- `wrapped.c` is the plugin's source code, for reading.
+- `rockbox-wrapped.patch` adds the plugin to a copy of the Rockbox source in
+  one step. It adds `wrapped.c` to `apps/plugins/` and makes two one-line
+  edits: in `SOURCES` it builds the plugin (only for players with a clock),
+  and in `CATEGORIES` it lists the plugin under Applications. The patch was
+  made against Rockbox commit `acb44be` and also applies cleanly to the 4.0
+  release (`v4.0-final`).
+
+Rockbox builds on Linux (or WSL on Windows) and needs its ARM cross-compiler.
+To install the cross-compiler, run `tools/rockboxdev.sh` once from the Rockbox
+folder and pick the ARM toolchain. See the
+[Rockbox build guide](https://www.rockbox.org/wiki/HowToCompile) for details.
+
 ```
 git clone https://github.com/Rockbox/rockbox.git && cd rockbox
-git checkout v4.0-final   # or the commit your player runs; the patch was made
-                          # against acb44be and also applies to v4.0-final
-git apply rockbox-wrapped.patch
-mkdir build && cd build && ../tools/configure --target=ipodvideo --type=n
-make -j8   # → apps/plugins/wrapped.rock
+git checkout v4.0-final        # the Rockbox version your player runs
+git apply /path/to/rockbox-wrapped.patch
+mkdir build && cd build
+../tools/configure --target=ipodvideo --type=n   # or ipod6g, ipodnano2g, ipodnano1g
+make -j8                       # result: apps/plugins/wrapped.rock
 ```
+
+To rebuild only the plugin after changing `wrapped.c`, run
+`make "$PWD/apps/plugins/wrapped.rock"` in the build folder.
 
 ## License
 
