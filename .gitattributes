@@ -1,0 +1,4 @@
+# shell scripts and the patch must keep Unix line endings to work on Linux
+*.sh    text eol=lf
+*.patch text eol=lf
+*.yml   text eol=lf

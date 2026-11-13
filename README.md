@@ -4,24 +4,33 @@
 
 A Spotify Wrapped–style year in review, built from Rockbox's own playback log.
 
-## Install on the iPod
+## Install
 
-1. Check your Rockbox version on the iPod: System → Rockbox Info.
-2. Download the matching file from the
-   [latest release](../../releases/latest). The file name says which Rockbox
-   version and which iPod it's for:
+1. Check your Rockbox version on the player: System → Rockbox Info.
+2. Open the [latest release](../../releases/latest) and find your player in
+   its table. There are builds for every Rockbox player that has a clock (iPods,
+   Sansas, iriver, Creative Zen, Sony NWZ, AIGO Eros Q, FiiO M3K and many more),
+   for Rockbox 4.0 and for the development version. Files are named
+   `wrapped-<Rockbox version>-<player>.rock`, for example
+   `wrapped-4.0-ipodvideo.rock`.
 
-   | Your iPod | Rockbox 4.0 | Development build (Nov 2026 or later) |
-   |---|---|---|
-   | iPod Video (5G / 5.5G) | `wrapped-4.0-ipodvideo.rock` | `wrapped-dev-ipodvideo.rock` |
-   | iPod Classic (6G / 6.5G / 7G) | `wrapped-4.0-ipod6g.rock` | `wrapped-dev-ipod6g.rock` |
-   | iPod Nano 2nd gen | `wrapped-4.0-ipodnano2g.rock` | `wrapped-dev-ipodnano2g.rock` |
-   | iPod Nano 1st gen | `wrapped-4.0-ipodnano1g.rock` | `wrapped-dev-ipodnano1g.rock` |
+   If you can't find your player, download the zip for your Rockbox version
+   (`rockbox-wrapped-4.0-all-players.zip` or
+   `rockbox-wrapped-dev-all-players.zip`). Its `PLAYERS.txt` lists every player
+   with its file.
 
-   A plugin only loads on the Rockbox version it was built for. With the
-   wrong one, the iPod says "Incompatible version".
-3. Rename it to `wrapped.rock` and copy it to `/.rockbox/rocks/apps/` on the iPod.
-4. On the iPod: Plugins → Applications → wrapped.
+   A plugin only loads on the player and Rockbox version it was built for.
+   With the wrong one, the player says "Incompatible model" or "Incompatible
+   version".
+3. Rename it to `wrapped.rock` and copy it to `/.rockbox/rocks/apps/` on the player.
+4. On the player: Plugins → Applications → wrapped.
+
+On small screens like the iPod Mini's, long slides continue on a second page.
+
+Players without a clock (such as the original iPod 1G/2G and the HiFi E.T.
+players) can't run Wrapped, because it needs dates to count by. For a Rockbox
+version that isn't built here, build it yourself from the patch (see
+[Building from source](#building-from-source)).
 
 For any other Rockbox version, build it yourself from the patch (see
 [Building from source](#building-from-source)).
@@ -104,7 +113,8 @@ The repo has the plugin in two forms:
 
 Rockbox builds on Linux (or WSL on Windows) and needs its ARM cross-compiler.
 To install the cross-compiler, run `tools/rockboxdev.sh` once from the Rockbox
-folder and pick the ARM toolchain. See the
+folder and pick the toolchain for your player: ARM for iPods, MIPS for the
+Eros Q. See the
 [Rockbox build guide](https://www.rockbox.org/wiki/HowToCompile) for details.
 
 ```
@@ -112,12 +122,32 @@ git clone https://github.com/Rockbox/rockbox.git && cd rockbox
 git checkout v4.0-final        # the Rockbox version your player runs
 git apply /path/to/rockbox-wrapped.patch
 mkdir build && cd build
-../tools/configure --target=ipodvideo --type=n   # or ipod6g, ipodnano2g, ipodnano1g
+../tools/configure --target=ipodvideo --type=n   # or ipod6g, ipodnano2g, ipodnano1g,
+                                                 # ipodmini2g, ipodmini1g, erosqnative, ...
 make -j8                       # result: apps/plugins/wrapped.rock
 ```
 
 To rebuild only the plugin after changing `wrapped.c`, run
 `make "$PWD/apps/plugins/wrapped.rock"` in the build folder.
+
+### How releases are built
+
+Releases are built by GitHub Actions
+([.github/workflows/build.yml](.github/workflows/build.yml)) with Rockbox's
+official toolchains. Every player in Rockbox's list of usable builds
+(`tools/builds.pm`) gets a build, for Rockbox 4.0 and the development version.
+Pushing a `v*` tag builds everything and creates a draft release, with a table
+of players generated from the results.
+
+The scripts in [ci/](ci/) also run locally. For example, to build every ARM
+player for Rockbox 4.0 into `out/`:
+
+```
+ci/build-all.sh /path/to/rockbox-v4.0 4.0 a out
+```
+
+`ci/list-targets.sh /path/to/rockbox` shows which players exist and which
+toolchain each one needs.
 
 ## Support
 

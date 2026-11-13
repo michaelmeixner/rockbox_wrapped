@@ -132,6 +132,8 @@ static bool prev_counted;
 struct line { unsigned char style; char text[SLIDE_LINELEN]; };
 struct slide { int n; struct line l[SLIDE_LINES]; };
 enum { L_BODY = 0, L_HEAD, L_BIG, L_DIM };
+#define L_STYLE_MASK 0x0f
+#define L_GLUE       0x10  /* keep on the same page as the next line */
 static struct slide slides[SLIDE_MAX];
 static int nslides;
 static bool have_stats;
@@ -558,12 +560,17 @@ static const char *entry_tags(const struct log_entry *e,
 static int merge_logs(void)
 {
     static char buf[ENTRY_BUFSZ];
-    static char names[MAX_LOGS][MAX_PATH];
     int nlogs = 0, added = 0;
     struct log_entry e;
     struct dirent *de;
     char *mark = arena_ptr;
     long next_update = *rb->current_tick + HZ / 2;
+
+    /* the log names live in the arena, not in static memory: 16 KB is a
+     * lot on players with a 64 KB plugin buffer (Sansa Clip v1) */
+    char (*names)[MAX_PATH] = arena_alloc(MAX_LOGS * MAX_PATH);
+    if (!names)
+        return -1;
 
     struct tag_cache **cache =
         arena_zalloc(TAG_CACHE_BUCKETS * sizeof(struct tag_cache *));
@@ -1213,8 +1220,8 @@ static void build_slides(void)
     unsigned long minutes = (unsigned long)(st.total_ms / 60000);
 
     s = new_slide();
-    add_line(s, L_DIM, "Your");
-    add_line(s, L_BIG, "%s", period);
+    add_line(s, L_DIM | L_GLUE, "Your");
+    add_line(s, L_BIG | L_GLUE, "%s", period);
     add_line(s, L_HEAD, "Wrapped");
     if (!st.plays)
     {
@@ -1228,8 +1235,8 @@ static void build_slides(void)
     add_line(s, L_DIM, "Scroll or press Select to continue");
 
     s = new_slide();
-    add_line(s, L_DIM, "You listened for");
-    add_line(s, L_BIG, "%s", fmt_num(minutes, n1, sizeof(n1)));
+    add_line(s, L_DIM | L_GLUE, "You listened for");
+    add_line(s, L_BIG | L_GLUE, "%s", fmt_num(minutes, n1, sizeof(n1)));
     add_line(s, L_HEAD, "minutes");
     add_line(s, L_BODY, "");
     if (minutes >= 60 * 24)
@@ -1245,7 +1252,7 @@ static void build_slides(void)
     {
         struct name *a = st.top_artists[0];
         s = new_slide();
-        add_line(s, L_DIM, "Your top artist was");
+        add_line(s, L_DIM | L_GLUE, "Your top artist was");
         add_line(s, L_BIG, "%s", a->str);
         add_line(s, L_BODY, "");
         add_line(s, L_BODY, "%s minutes, %s plays",
@@ -1269,8 +1276,8 @@ static void build_slides(void)
     {
         struct track *t = st.top_tracks[0];
         s = new_slide();
-        add_line(s, L_DIM, st.year ? "Your song of the year" : "Your most played song");
-        add_line(s, L_BIG, "%s", t->title ? t->title : t->path);
+        add_line(s, L_DIM | L_GLUE, st.year ? "Your song of the year" : "Your most played song");
+        add_line(s, L_BIG | L_GLUE, "%s", t->title ? t->title : t->path);
         if (t->artist_str)
             add_line(s, L_BODY, "%s", t->artist_str);
         add_line(s, L_BODY, "");
@@ -1282,7 +1289,7 @@ static void build_slides(void)
         for (int i = 0; i < TOP_N && st.top_tracks[i]; i++)
         {
             t = st.top_tracks[i];
-            add_line(s, L_BODY, "%d. %s", i + 1, t->title ? t->title : t->path);
+            add_line(s, L_BODY | L_GLUE, "%d. %s", i + 1, t->title ? t->title : t->path);
             add_line(s, L_DIM, "%s - %lu plays",
                      t->artist_str ? t->artist_str : "", (unsigned long)t->plays);
         }
@@ -1296,7 +1303,7 @@ static void build_slides(void)
         for (int i = 0; i < TOP_N && st.top_albums[i]; i++)
         {
             struct name *a = st.top_albums[i];
-            add_line(s, L_BODY, "%d. %s", i + 1, a->str);
+            add_line(s, L_BODY | L_GLUE, "%d. %s", i + 1, a->str);
             add_line(s, L_DIM, "%s - %s min", a->sub ? a->sub : "",
                      fmt_num(a->ms / 60000, n1, sizeof(n1)));
         }
@@ -1310,11 +1317,11 @@ static void build_slides(void)
         s = new_slide();
         add_line(s, L_HEAD, "Your listening clock");
         add_line(s, L_BODY, "");
-        add_line(s, L_DIM, "Peak hour");
+        add_line(s, L_DIM | L_GLUE, "Peak hour");
         add_line(s, L_BIG, "%d %s", h12, h < 12 ? "AM" : "PM");
-        add_line(s, L_DIM, "Favorite day");
+        add_line(s, L_DIM | L_GLUE, "Favorite day");
         add_line(s, L_BODY, "%s", day_names[d]);
-        add_line(s, L_DIM, "Biggest month");
+        add_line(s, L_DIM | L_GLUE, "Biggest month");
         add_line(s, L_BODY, "%s (%s min)", month_names[m],
                  fmt_num(st.month_sec[m] / 60, n1, sizeof(n1)));
     }
@@ -1326,12 +1333,12 @@ static void build_slides(void)
         add_line(s, L_HEAD, "Big days");
         add_line(s, L_BODY, "");
         day_label(st.best_day, day, sizeof(day));
-        add_line(s, L_DIM, "Most listening in one day");
-        add_line(s, L_BIG, "%s", day);
+        add_line(s, L_DIM | L_GLUE, "Most listening in one day");
+        add_line(s, L_BIG | L_GLUE, "%s", day);
         add_line(s, L_BODY, "%s minutes",
                  fmt_num(st.best_day_sec / 60, n1, sizeof(n1)));
         add_line(s, L_BODY, "");
-        add_line(s, L_DIM, "Longest streak");
+        add_line(s, L_DIM | L_GLUE, "Longest streak");
         add_line(s, L_BODY, "%d day%s in a row", st.streak,
                  st.streak == 1 ? "" : "s");
     }
@@ -1346,7 +1353,7 @@ static void build_slides(void)
     if (st.first_track && st.first_track->title)
     {
         add_line(s, L_BODY, "");
-        add_line(s, L_DIM, "First song of %s:", st.year ? "the year" : "your history");
+        add_line(s, L_DIM | L_GLUE, "First song of %s:", st.year ? "the year" : "your history");
         add_line(s, L_BODY, "%s", st.first_track->title);
     }
     if (st.missing_meta)
@@ -1399,6 +1406,7 @@ static void load_big_font(void)
 
 static void set_line_font(int style)
 {
+    style &= L_STYLE_MASK;
     rb->lcd_setfont(style == L_BIG && big_font >= 0 ? big_font : FONT_UI);
 }
 
@@ -1470,61 +1478,123 @@ static int draw_wrapped(const char *text, int y, bool draw)
     return used;
 }
 
-static int lines_height(const struct slide *s)
+/* height of one line as drawn, including the extra space around big text */
+static int line_height(const struct line *l)
 {
-    int total = 0;
-    for (int i = 0; i < s->n; i++)
-    {
-        set_line_font(s->l[i].style);
-        total += draw_wrapped(s->l[i].text, 0, false);
-        if (s->l[i].style == L_BIG)
-            total += 4;
-    }
+    int style = l->style & L_STYLE_MASK;
+    set_line_font(style);
+    int h = draw_wrapped(l->text, 0, false) + (style == L_BIG ? 4 : 0);
     set_line_font(L_BODY);
-    return total;
+    return h;
 }
 
-static void draw_slide(int idx)
+static void draw_line(const struct line *l, int *y)
 {
-    const struct slide *s = &slides[idx];
+    int style = l->style & L_STYLE_MASK;
 #ifdef HAVE_LCD_COLOR
-    unsigned bg = slide_bg[idx % N_BG];
-    rb->lcd_set_background(bg);
+    switch (style)
+    {
+        case L_HEAD: rb->lcd_set_foreground(LCD_RGBPACK(255, 225, 90)); break;
+        case L_DIM:  rb->lcd_set_foreground(LCD_RGBPACK(215, 215, 215)); break;
+        default:     rb->lcd_set_foreground(LCD_WHITE); break;
+    }
+#endif
+    if (style == L_BIG)
+        *y += 2;
+    set_line_font(style);
+    *y += draw_wrapped(l->text, *y, true);
+    set_line_font(L_BODY);
+    if (style == L_BIG)
+        *y += 2;
+}
+
+/* Slides that don't fit the screen (small ones like the iPod Mini's) are
+ * split into pages. A continuation page repeats the slide's heading, and
+ * lines marked L_GLUE stay on the same page as the line after them. On
+ * screens where every slide fits, there's one page per slide. */
+#define MAX_PAGES 64
+#define PAGE_AREA (LCD_HEIGHT - 12)      /* room above the page dots */
+struct page { uint8_t slide, first, end; bool cont; };
+static struct page pages[MAX_PAGES];
+static int npages;
+static const struct line blank_line = { L_BODY, "" };
+
+static bool has_heading(const struct slide *s)
+{
+    return s->n && (s->l[0].style & L_STYLE_MASK) == L_HEAD;
+}
+
+static void paginate(void)
+{
+    npages = 0;
+    for (int si = 0; si < nslides && npages < MAX_PAGES; si++)
+    {
+        const struct slide *s = &slides[si];
+        int head = has_heading(s)
+                   ? line_height(&s->l[0]) + line_height(&blank_line) : 0;
+        int i = 0;
+        while (i < s->n && npages < MAX_PAGES)
+        {
+            bool cont = i > 0;
+            if (cont)                   /* no blank lines at the top */
+                while (i < s->n && !s->l[i].text[0])
+                    i++;
+            if (i >= s->n)
+                break;
+            int start = i, used = cont ? head : 0;
+            while (i < s->n)
+            {
+                int j = i, group = 0;
+                do
+                    group += line_height(&s->l[j]);
+                while ((s->l[j++].style & L_GLUE) && j < s->n);
+                if (used + group > PAGE_AREA && i > start)
+                    break;              /* starts the next page */
+                used += group;
+                i = j;
+            }
+            pages[npages++] = (struct page){ si, start, i, cont };
+        }
+    }
+}
+
+static void draw_page(int idx)
+{
+    const struct page *pg = &pages[idx];
+    const struct slide *s = &slides[pg->slide];
+    bool head = pg->cont && has_heading(s);
+#ifdef HAVE_LCD_COLOR
+    rb->lcd_set_background(slide_bg[pg->slide % N_BG]); /* same colour on
+                                                           every page */
 #endif
     rb->lcd_clear_display();
 
-    int h = lines_height(s);
+    int h = head ? line_height(&s->l[0]) + line_height(&blank_line) : 0;
+    for (int i = pg->first; i < pg->end; i++)
+        h += line_height(&s->l[i]);
     int y = (LCD_HEIGHT - 10 - h) / 2;
     if (y < 2)
         y = 2;
 
-    for (int i = 0; i < s->n; i++)
+    if (head)
     {
-#ifdef HAVE_LCD_COLOR
-        switch (s->l[i].style)
-        {
-            case L_HEAD: rb->lcd_set_foreground(LCD_RGBPACK(255, 225, 90)); break;
-            case L_BIG:  rb->lcd_set_foreground(LCD_WHITE); break;
-            case L_DIM:  rb->lcd_set_foreground(LCD_RGBPACK(215, 215, 215)); break;
-            default:     rb->lcd_set_foreground(LCD_WHITE); break;
-        }
-#endif
-        if (s->l[i].style == L_BIG)
-            y += 2;
-        set_line_font(s->l[i].style);
-        y += draw_wrapped(s->l[i].text, y, true);
-        set_line_font(L_BODY);
-        if (s->l[i].style == L_BIG)
-            y += 2;
+        draw_line(&s->l[0], &y);
+        draw_line(&blank_line, &y);
     }
+    for (int i = pg->first; i < pg->end; i++)
+        draw_line(&s->l[i], &y);
 
-    /* page dots */
+    /* page dots, smaller if there are many pages on a narrow screen */
 #ifdef HAVE_LCD_COLOR
     rb->lcd_set_foreground(LCD_WHITE);
 #endif
     int dot = 4, gap = 4;
-    int x = (LCD_WIDTH - nslides * (dot + gap) + gap) / 2;
-    for (int i = 0; i < nslides; i++, x += dot + gap)
+    if (npages * (dot + gap) > LCD_WIDTH - 8)
+        dot = 3, gap = 2;
+    int x = (LCD_WIDTH - npages * (dot + gap) + gap) / 2;
+    if (x < 0)
+        x = 0;
+    for (int i = 0; i < npages; i++, x += dot + gap)
     {
         if (i == idx)
             rb->lcd_fillrect(x, LCD_HEIGHT - 7, dot, dot);
@@ -1540,7 +1610,10 @@ static int show_slides(void)
     long last_scroll = 0;
     bool done = false;
 
-    draw_slide(cur);
+    paginate();
+    if (!npages)
+        return ret;
+    draw_page(cur);
     while (!done)
     {
         int prev = cur;
@@ -1553,7 +1626,7 @@ static int show_slides(void)
                 last_scroll = *rb->current_tick;
                 /* fall through */
             case ACTION_STD_OK:
-                if (cur < nslides - 1)
+                if (cur < npages - 1)
                     cur++;
                 else if (action == ACTION_STD_OK)
                     done = true;
@@ -1583,7 +1656,7 @@ static int show_slides(void)
                 break;
         }
         if (!done && cur != prev)
-            draw_slide(cur);
+            draw_page(cur);
     }
 #ifdef HAVE_LCD_COLOR
     rb->lcd_set_background(LCD_DEFAULT_BG);
