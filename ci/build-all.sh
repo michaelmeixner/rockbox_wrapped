@@ -30,6 +30,7 @@ while read -r target a name; do
   rm -rf "$dir"; mkdir -p "$dir"
   if ! (cd "$dir" && ../tools/configure --target="$target" --type=n < /dev/null > "$log" 2>&1); then
     echo "FAILED  $target ($name): configure"; tail -5 "$log" | sed 's/^/    /'
+    mkdir -p "$out/logs"; cp "$log" "$out/logs/configure-$label-$target.log"
     printf '%s\t%s\tfailed\t%s\n' "$label" "$target" "$name" >> "$results"
     failed=1; continue
   fi
@@ -51,6 +52,7 @@ while read -r target a name; do
   else
     echo "FAILED  $target ($name)"
     grep -E 'error|Error' "$log" | head -8 | sed 's/^/    /'
+    mkdir -p "$out/logs"; cp "$log" "$out/logs/build-$label-$target.log"
     printf '%s\t%s\tfailed\t%s\n' "$label" "$target" "$name" >> "$results"
     failed=1
   fi

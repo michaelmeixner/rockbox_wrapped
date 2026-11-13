@@ -18,8 +18,16 @@ on:
 permissions:
   contents: read
 
+# "shell: bash" adds -o pipefail, so "build | tee" fails when the build does
+defaults:
+  run:
+    shell: bash
+
 env:
   ROCKBOX_REPO: https://github.com/Rockbox/rockbox.git
+  # Rockbox commit whose tools/rockboxdev.sh builds the hosted (x, y)
+  # toolchains for BOTH versions: 4.0's copy downloads from dead ftp:// links.
+  TOOLCHAIN_REF: acb44bec63270582c5448acce3f70dbcb03fc9a8
 
 jobs:
   build:
@@ -45,9 +53,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential texinfo flex bison gawk zip \
-            wget perl python3 rsync automake autoconf libtool libtool-bin \
-            patch xz-utils bzip2 libgmp-dev libmpfr-dev libmpc-dev
-          # (rockboxdev.sh looks for a "libtool" command: that's libtool-bin)
+            wget curl perl python3 rsync automake autoconf libtool libtool-bin \
+            patch xz-utils bzip2 libgmp-dev libmpfr-dev libmpc-dev \
+            gettext gtk-doc-tools pkg-config
+          # Same extras as Rockbox's own build servers (tools/docker_rbclient):
+          # rockboxdev.sh looks for a "libtool" command (libtool-bin), and the
+          # hosted MIPS toolchain builds glib, which needs gettext/gtk-doc-tools.
 
       - name: Get Rockbox ${{ matrix.rockbox.ref }}
         run: |
@@ -55,9 +66,21 @@ jobs:
           git -C rockbox fetch -q --depth 1 "$ROCKBOX_REPO" "${{ matrix.rockbox.ref }}"
           git -C rockbox checkout -q FETCH_HEAD
 
+      # The toolchain is built with this tree's rockboxdev.sh, except for the
+      # hosted toolchains (x, y), which always come from TOOLCHAIN_REF.
+      - name: Pick the toolchain script
+        run: |
+          if [[ "${{ matrix.arch }}" == [xy] && "${{ matrix.rockbox.ref }}" != "$TOOLCHAIN_REF" ]]; then
+            git init -q tctree
+            git -C tctree fetch -q --depth 1 "$ROCKBOX_REPO" "$TOOLCHAIN_REF"
+            git -C tctree checkout -q FETCH_HEAD
+          else
+            ln -s rockbox tctree
+          fi
+
       - name: Toolchain cache key
         id: tc
-        run: echo "key=rbdev-${{ matrix.arch }}-$(sha256sum rockbox/tools/rockboxdev.sh | cut -c1-16)" >> "$GITHUB_OUTPUT"
+        run: echo "key=rbdev-${{ matrix.arch }}-$(sha256sum tctree/tools/rockboxdev.sh | cut -c1-16)" >> "$GITHUB_OUTPUT"
 
       - name: Restore toolchain
         id: cache
@@ -71,9 +94,18 @@ jobs:
         run: |
           RBDEV_PREFIX="$HOME/rbdev" RBDEV_DOWNLOAD="$RUNNER_TEMP/dl" \
           RBDEV_BUILD="$RUNNER_TEMP/build" \
-            bash rockbox/tools/rockboxdev.sh --target=${{ matrix.arch }}
+            bash tctree/tools/rockboxdev.sh --target=${{ matrix.arch }}
           # rockboxdev.sh can exit 0 on failure: make sure a compiler exists
           ls "$HOME"/rbdev/bin/*-gcc
+
+      - name: Show toolchain build logs
+        if: failure() && steps.cache.outputs.cache-hit != 'true'
+        run: |
+          # the newest log is the step that failed
+          for f in $(ls -t "$RUNNER_TEMP"/build/build-*.log 2>/dev/null | head -2); do
+            { echo "### $(basename "$f")"; echo '```'; tail -60 "$f"; echo '```'; } \
+              | tee -a "$GITHUB_STEP_SUMMARY"
+          done
 
       # saved straight away, so a failed plugin build doesn't lose it
       - name: Save toolchain
@@ -86,9 +118,11 @@ jobs:
       - name: Build plugins
         run: |
           export PATH="$HOME/rbdev/bin:$PATH"
+          status=0
           bash ci/build-all.sh rockbox "${{ matrix.rockbox.label }}" \
-            "${{ matrix.arch }}" out | tee build.txt
+            "${{ matrix.arch }}" out | tee build.txt || status=$?
           { echo '```'; cat build.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $status
 
       - name: Upload plugins
         if: always()
