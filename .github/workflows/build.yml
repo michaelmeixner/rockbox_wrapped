@@ -61,10 +61,15 @@ jobs:
           # hosted MIPS toolchain builds glib, which needs gettext/gtk-doc-tools.
 
       - name: Get Rockbox ${{ matrix.rockbox.ref }}
+        # Kept at a SHORT path: Rockbox's "Generating dependencies" step puts
+        # every source path into one shell command, and with the long
+        # /home/runner/work/... prefix that passes Linux's 128 KB limit on
+        # big players (iPods, Sansas): "Argument list too long".
         run: |
-          git init -q rockbox
-          git -C rockbox fetch -q --depth 1 "$ROCKBOX_REPO" "${{ matrix.rockbox.ref }}"
-          git -C rockbox checkout -q FETCH_HEAD
+          git init -q /tmp/rb
+          git -C /tmp/rb fetch -q --depth 1 "$ROCKBOX_REPO" "${{ matrix.rockbox.ref }}"
+          git -C /tmp/rb checkout -q FETCH_HEAD
+          ln -s /tmp/rb rockbox
 
       # The toolchain is built with this tree's rockboxdev.sh, except for the
       # hosted toolchains (x, y), which always come from TOOLCHAIN_REF.

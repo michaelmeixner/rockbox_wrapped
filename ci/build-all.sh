@@ -12,7 +12,9 @@
 # Pass TARGET names to build only those.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-tree="$(cd "${1:?usage: build-all.sh ROCKBOX_TREE LABEL ARCH_LETTERS OUTDIR [TARGET...]}" && pwd)"
+# pwd -P: the real (short) path, not a symlink's. Rockbox's dependency step
+# fails with "Argument list too long" when the tree's path is long.
+tree="$(cd "${1:?usage: build-all.sh ROCKBOX_TREE LABEL ARCH_LETTERS OUTDIR [TARGET...]}" && pwd -P)"
 label="${2:?label}"; arch="${3:?arch letters}"
 mkdir -p "${4:?outdir}"; out="$(cd "$4" && pwd)"; shift 4
 only=" $* "
@@ -24,7 +26,7 @@ results="$out/results-$label-$arch.tsv"
 failed=0
 while read -r target a name; do
   [ "$only" = "  " ] || [[ "$only" == *" $target "* ]] || continue
-  dir="$tree/build-wrapped-$target"
+  dir="$tree/b"                      # short on purpose (see above)
   rock="$dir/apps/plugins/wrapped.rock"
   log="$dir/build.log"
   rm -rf "$dir"; mkdir -p "$dir"
