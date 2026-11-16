@@ -64,7 +64,7 @@ root of the iPod. Without these fonts, Wrapped uses your normal UI font.
 - On the slides: Select or scroll forward = next, Left or scroll back = previous,
   Menu = back to the menu.
 
-## How it tracks plays
+## Tracking plays
 
 - A play is 30 seconds or more. Shorter starts on longer tracks count as skips.
 - Stopping mid-track and resuming later logs two entries; they are merged into one play.
