@@ -10,10 +10,9 @@
  *
  * Copyright (C) 2026 Michael Meixner
  *
- * Reads the playback log(s) written by Settings > Playback Settings >
- * Logging, keeps a permanent copy in /.rockbox/wrapped_history.log (so
- * history survives the LastFm Scrobbler deleting the log) and shows your
- * top tracks, artists, albums and listening habits as a set of slides.
+ * Copies the playback log into /.rockbox/wrapped_history.log (which
+ * survives the scrobbler deleting the log) and shows top tracks, artists,
+ * albums and listening habits as slides.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,14 +40,11 @@
 #define MAX_TRACK_ARTISTS 6    /* "A; B; C" credits each, up to this many */
 #define NAME_PART_LEN  256
 
-/* history lines may carry tags after the path, tab separated:
- * ts:elapsed:length:/path<TAB>artist<TAB>albumartist<TAB>album<TAB>title<TAB>genre
- * FAT names can't contain control characters, so a tab never appears in a
- * path. Lines without tags (older history, raw playback.log) still parse. */
+/* history line: ts:elapsed:length:/path<TAB>artist<TAB>albumartist<TAB>album<TAB>title<TAB>genre
+ * (paths can't contain tabs; untagged lines still parse) */
 enum { TAG_ARTIST = 0, TAG_ALBUMARTIST, TAG_ALBUM, TAG_TITLE, TAG_GENRE,
        TAG_FIELDS };
-#define HIST_TAG_MAXLEN 120   /* bytes per field, cut on a UTF-8 boundary
-                                 (tagcache.h already has a TAG_MAXLEN) */
+#define HIST_TAG_MAXLEN 120   /* bytes per field (TAG_MAXLEN is taken) */
 #define TAGS_BUFSZ     (TAG_FIELDS * (HIST_TAG_MAXLEN + 1) + 1)
 #define ENTRY_BUFSZ    (MAX_PATH + TAGS_BUFSZ + 64)
 
@@ -212,8 +208,7 @@ static bool parse_num(char **pp, unsigned long *out)
     return true;
 }
 
-/* "timestamp:elapsed:length:/path" ; lines copied by the scrobbler are
- * prefixed with ' ' (valid), '@' (duplicate) or '!' (too short) */
+/* scrobbler copies prefix lines with ' ', '@' (duplicate) or '!' (short) */
 static bool parse_line(char *buf, struct log_entry *e)
 {
     char *p = buf;
@@ -274,8 +269,7 @@ static bool read_tags(const char *path)
 
 static void clean_tag(char *dst, const char *src);
 
-/* points f[] at id3's tags, cleaned exactly as the history file stores
- * them, so a live lookup and a saved line give the same names */
+/* id3's tags, cleaned the way the history stores them */
 static void id3_fields(const char *f[TAG_FIELDS])
 {
     static char clean[TAG_FIELDS][HIST_TAG_MAXLEN + 1];
@@ -339,10 +333,8 @@ static bool contains_ci(const char *s, const char *needle)
     return false;
 }
 
-/* audiobooks and podcasts aren't music, so they're left out of the stats
- * (they stay in the history file). Caught by genre tag, by a folder named
- * like "Audiobooks" anywhere in the path, or by the .m4b extension.
- * Only tagged lines carry a genre; older untagged lines rely on the path. */
+/* audiobooks/podcasts: by genre, an "Audiobooks"/"Podcasts" folder, or .m4b.
+ * Left out of the stats, kept in the history. */
 static bool is_spoken_word(const struct log_entry *e)
 {
     static const char * const genres[] = {
@@ -389,8 +381,7 @@ static bool is_playback_log(const char *name)
         && rb->strcasecmp(name + len - 4, ".log") == 0;
 }
 
-/* rotated logs (playback_NNNN.log, zero padded) sort by name; the live
- * playback.log is always the newest */
+/* playback_NNNN.log sort by name; playback.log is newest */
 static bool log_before(const char *a, const char *b)
 {
     bool a_live = rb->strcasecmp(a, ROCKBOX_DIR "/playback.log") == 0;
@@ -400,9 +391,8 @@ static bool log_before(const char *a, const char *b)
     return rb->strcasecmp(a, b) < 0;
 }
 
-/* ---- set of (timestamp, path) pairs already in the history ----
- * 64-bit keys from two different string hashes, so a false "already saved"
- * (which would drop a play) is practically impossible even for huge logs */
+/* set of (timestamp, path) already in the history. 64-bit keys from two
+ * hashes make a false "already saved" (a dropped play) practically impossible */
 static uint64_t *seen_keys;
 static uint32_t seen_mask;
 
@@ -446,8 +436,8 @@ static off_t file_size(const char *path)
     return size > 0 ? size : 0;
 }
 
-/* sizes the set from the files involved (a line is at least ~32 bytes)
- * and fills it with the history; false if there isn't memory for it */
+/* sized from the files (>= ~32 bytes a line), filled from the history;
+ * false if out of memory */
 static bool load_seen(off_t bytes, unsigned long *last)
 {
     static char buf[ENTRY_BUFSZ];
@@ -502,9 +492,8 @@ static unsigned long history_last_ts(void)
     return last;
 }
 
-/* the tag suffix to write after e's path: the line's own tags if it has
- * them, otherwise looked up from the file (once per path per merge).
- * Empty when the file can't be read, so later runs fall back as before. */
+/* tag suffix for e: its own tags, else read from the file (cached per
+ * path); empty if unreadable */
 static const char *entry_tags(const struct log_entry *e,
                               struct tag_cache **cache)
 {
@@ -555,8 +544,7 @@ static const char *entry_tags(const struct log_entry *e,
     return suffix;
 }
 
-/* copy log entries that aren't in the archive yet into it, with their
- * tags; returns the number added */
+/* appends unsaved log entries, with tags, to the history; returns count */
 static int merge_logs(void)
 {
     static char buf[ENTRY_BUFSZ];
@@ -566,8 +554,7 @@ static int merge_logs(void)
     char *mark = arena_ptr;
     long next_update = *rb->current_tick + HZ / 2;
 
-    /* the log names live in the arena, not in static memory: 16 KB is a
-     * lot on players with a 64 KB plugin buffer (Sansa Clip v1) */
+    /* in the arena: 16 KB static is too much for a 64 KB plugin buffer */
     char (*names)[MAX_PATH] = arena_alloc(MAX_LOGS * MAX_PATH);
     if (!names)
         return -1;
@@ -588,9 +575,7 @@ static int merge_logs(void)
     }
     rb->closedir(dir);
 
-    /* readdir order is arbitrary: merge oldest first (playback_0001.log,
-     * _0002, ..., then the live playback.log) so the history stays in time
-     * order, which the stop/resume merging relies on */
+    /* oldest first, so the history stays in play order (resume needs it) */
     for (int i = 1; i < nlogs; i++)
     {
         for (int j = i; j > 0 && log_before(names[j], names[j - 1]); j--)
@@ -602,10 +587,8 @@ static int merge_logs(void)
         }
     }
 
-    /* Add every log line that isn't already saved, whatever its time:
-     * plays stamped while the clock was wrong (an iPod's clock resets to
-     * an old date when the battery runs flat) still get in. Without the
-     * memory for that, only take lines newer than the newest saved one. */
+    /* add every unsaved line whatever its time (a flat battery resets the
+     * clock); without memory for the set, only lines newer than the last */
     off_t bytes = file_size(HISTORY_FILE);
     for (int i = 0; i < nlogs; i++)
         bytes += file_size(names[i]);
@@ -724,8 +707,7 @@ static struct name *get_name(struct name_table *tbl, const char *str,
     return n;
 }
 
-/* the history is in time order, so the newest tags for a track win
- * (someone may have fixed their tags since an older play) */
+/* newest tags win (they may have been fixed since) */
 static void store_tags(struct track *t, const struct log_entry *e)
 {
     for (int i = 0; i < TAG_FIELDS; i++)
@@ -750,8 +732,8 @@ static void process_entry(const struct log_entry *e)
     if (t && e->has_tags)
         store_tags(t, e);
 
-    /* stopping mid-track and resuming later logs two entries; the second
-     * one's elapsed time includes the first, so only count the difference */
+    /* stop + resume logs twice, the second including the first: count the
+     * difference */
     if (h == prev_hash && t == prev_track && e->length == prev_length
         && prev_elapsed < prev_length / 100 * FINISHED_PCT
         && e->elapsed >= prev_elapsed)
@@ -863,9 +845,7 @@ static void guess_from_path(const char *path, char *artist, char *album,
     }
 }
 
-/* "A; B ;C" -> distinct, space-trimmed, non-empty names (at most
- * MAX_TRACK_ARTISTS). Only ';' splits: "Simon & Garfunkel" and "AC/DC"
- * are one name each. */
+/* "A; B ;C" -> distinct trimmed names. Only ';' splits ("AC/DC" is one) */
 static int split_names(const char *s, char parts[][NAME_PART_LEN])
 {
     int n = 0;
@@ -933,8 +913,7 @@ static void load_metadata(void)
         if (rb->action_userabort(TIMEOUT_NOBLOCK))
             break;
 
-        /* tags saved in the history need no file access; only older
-         * untagged lines need the slow lookup */
+        /* saved tags first; only untagged lines need the slow file read */
         const char *f[TAG_FIELDS] = { NULL };
         if (t->tagged)
         {
@@ -976,8 +955,7 @@ static void load_metadata(void)
                 t->artists[t->nartists++] = nm;
         }
 
-        /* an album is by its album artist tag (tidied the same way),
-         * else by the first credited artist */
+        /* album is by its album artist, else the first artist */
         int an = tag_set(f[TAG_ALBUMARTIST])
                  ? split_names(f[TAG_ALBUMARTIST], aparts) : 0;
         if (an)
@@ -1410,8 +1388,7 @@ static void set_line_font(int style)
     rb->lcd_setfont(style == L_BIG && big_font >= 0 ? big_font : FONT_UI);
 }
 
-/* draws (or just measures, when draw is false) text wrapped to width;
- * returns the height used */
+/* draws (or only measures) wrapped text; returns the height used */
 static int draw_wrapped(const char *text, int y, bool draw)
 {
     char buf[SLIDE_LINELEN];
@@ -1508,10 +1485,8 @@ static void draw_line(const struct line *l, int *y)
         *y += 2;
 }
 
-/* Slides that don't fit the screen (small ones like the iPod Mini's) are
- * split into pages. A continuation page repeats the slide's heading, and
- * lines marked L_GLUE stay on the same page as the line after them. On
- * screens where every slide fits, there's one page per slide. */
+/* slides too tall for the screen split into pages; continuation pages
+ * repeat the heading, and L_GLUE lines stay with the next line */
 #define MAX_PAGES 64
 #define PAGE_AREA (LCD_HEIGHT - 12)      /* room above the page dots */
 struct page { uint8_t slide, first, end; bool cont; };
@@ -1564,8 +1539,7 @@ static void draw_page(int idx)
     const struct slide *s = &slides[pg->slide];
     bool head = pg->cont && has_heading(s);
 #ifdef HAVE_LCD_COLOR
-    rb->lcd_set_background(slide_bg[pg->slide % N_BG]); /* same colour on
-                                                           every page */
+    rb->lcd_set_background(slide_bg[pg->slide % N_BG]); /* per slide */
 #endif
     rb->lcd_clear_display();
 

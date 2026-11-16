@@ -1,18 +1,8 @@
 #!/bin/bash
-# Lists the Rockbox players to build Wrapped for, with the toolchain each needs.
-#
-#   ci/list-targets.sh ROCKBOX_TREE [ARCH_LETTERS]
-#
-# Prints one line per player:  <target> <arch> <full name>
-# <arch> is the tools/rockboxdev.sh toolchain letter:
-#   a = arm-elf-eabi    i = mipsel-elf    m = m68k-elf
-#   x = arm-rockbox-linux-gnueabi (hosted)    y = mipsel-rockbox-linux-gnu (hosted)
-# ARCH_LETTERS (e.g. "ai") limits the list to those toolchains.
-#
-# Players come from Rockbox's own tools/builds.pm (status 2 "unstable" and
-# 3 "stable"). The toolchain is worked out from tools/configure, so no
-# compiler is needed to run this. Players needing any other toolchain
-# (Android, SDL-only handhelds) are left out.
+# ci/list-targets.sh ROCKBOX_TREE [ARCH_LETTERS]
+# Prints "<target> <arch> <name>" for each usable player in tools/builds.pm.
+# arch is the rockboxdev.sh letter, read from tools/configure: a=ARM, i=MIPS,
+# m=m68k, x/y=hosted Linux ARM/MIPS. Other toolchains are skipped.
 set -euo pipefail
 tree="${1:?usage: list-targets.sh ROCKBOX_TREE [ARCH_LETTERS]}"
 want="${2:-aimxy}"

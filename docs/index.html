@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: a stack of full-width colour bands, one per stat, the same palette the iPod plugin uses for its slides */
+/* full-width colour bands, one per stat, in the plugin's slide colours */
 :root {
   --bg: #eef0ee;
   --fg: #151816;
@@ -95,15 +95,16 @@ a { color: var(--accent); text-underline-offset: 2px }
 <header>
   <div class="wrap">
     <h1>Rockbox Wrapped</h1>
-    <p class="lede">Your year in music from the playback log your iPod already keeps. Everything is read in this page; nothing is uploaded.</p>
+    <p class="lede">Your year in music from the playback log your Rockbox iPod already keeps, or from your iTunes play counts. Everything is read in this page; nothing is uploaded.</p>
     <nav class="links" aria-label="Project">
       <a href="https://github.com/michaelmeixner/rockbox_wrapped/releases/latest">Get the iPod plugin</a>
       <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>
     </nav>
     <div class="drop" id="drop">
-      <p>Drop <code>wrapped_history.log</code> (best, because it includes your tags), <code>playback.log</code>, or any <code>playback_0001.log</code> files from your iPod's <code>.rockbox</code> folder. You can drop several at once.</p>
-      <label class="btn primary" for="file">Choose log files</label>
-      <input type="file" id="file" multiple accept=".log,.txt,text/plain">
+      <p>Drop <code>wrapped_history.log</code> (best, because it includes your tags), <code>playback.log</code>, or any <code>playback_0001.log</code> files from your iPod's <code>.rockbox</code> folder. You can drop several at once.<br>
+      <span style="color:var(--muted)">Stock iPod OS? Drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</span></p>
+      <label class="btn primary" for="file">Choose files</label>
+      <input type="file" id="file" multiple accept=".log,.txt,.xml,text/plain,text/xml,application/xml">
     </div>
     <div class="status" id="status"></div>
     <div class="chips" id="years" role="group" aria-label="Period"></div>
@@ -120,6 +121,7 @@ a { color: var(--accent); text-underline-offset: 2px }
     </div>
     <pre id="summary" aria-label="Summary text"></pre>
     <p>Counting rules match the iPod plugin: a play is 30 seconds or more, a stop-and-resume of the same track counts once. Audiobooks and podcasts are left out: anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code>. Artist, album and title come from the tags the plugin saves in <code>wrapped_history.log</code>; a raw <code>playback.log</code> stores only file paths, so for those plays they come from the <code>/Artist/Album/Track</code> folders.</p>
+    <p>iTunes exports: iTunes keeps one running play count per song plus the date of its last play, not a record of each play. With one export you get all time, or an estimate for a year: the songs last played that year, with their all-time counts. With two exports, the difference in counts gives the exact plays between them. Minutes are plays times song length. Sync your iPod before exporting, so its plays reach iTunes. Videos, podcasts and audiobooks are left out.</p>
     <p>Rockbox Wrapped by Michael Meixner · <a href="https://github.com/michaelmeixner/rockbox_wrapped">source on GitHub</a> · GPL v2 or later. Not affiliated with Rockbox or Spotify.</p>
   </div>
 </footer>
@@ -131,13 +133,14 @@ const DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Satur
 const fmt = n => Math.round(n).toLocaleString("en-US");
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-let entries = [], isSample = true, period = null, sources = [];
+// mode "log": single plays (Rockbox); "itunes": play-count snapshots
+let entries = [], isSample = true, period = null, sources = [], mode = "log";
 
 /* ---------- parsing ---------- */
 function parseText(txt, map) {
   let n = 0;
   for (const raw of txt.split("\n")) {
-    // history v2 lines carry tags after the path: \tartist\talbumartist\talbum\ttitle\tgenre
+    // history v2: tab-separated tags after the path
     const m = /^ ?(\d+):(\d+):(\d+):(\/[^\t\r]*)(?:\t([^\r]*))?\r?$/.exec(raw);
     if (!m) continue;
     const ts = +m[1], length = +m[3], path = m[4];
@@ -168,17 +171,17 @@ function meta(path, tags) {
   if (tagSet(tAlbum)) album = tAlbum;
   if (tagSet(tTitle)) title = tTitle;
   if (!artist) artist = "Unknown artist";
-  // credit every artist in "A; B" (like Spotify); album is by its album artist, else the first one
+  // credit every artist in "A; B"; album is by its album artist, else the first
   let artists = splitNames(artist);
   if (!artists.length) artists = ["Unknown artist"];
   const by = tagSet(tAlbumArtist) ? splitNames(tAlbumArtist) : [];
   return { title, album, artist: artists.join(", "), artists, albumArtist: by.length ? by.join(", ") : artists[0], genre: tagSet(tGenre) ? tGenre : "" };
 }
 
-// mirrors split_names() in wrapped.c: only ';' splits, so "AC/DC" and "Simon & Garfunkel" stay whole
+// mirrors split_names() in wrapped.c: only ';' splits ("AC/DC" stays whole)
 const splitNames = s => [...new Set(s.split(";").map(x => x.replace(/^ +| +$/g, "")).filter(Boolean))].slice(0, 6);
 
-// mirrors is_spoken_word() in wrapped.c: audiobooks and podcasts aren't music
+// mirrors is_spoken_word() in wrapped.c
 const SPOKEN_GENRE = /audio ?book|spoken|podcast/i;
 const SPOKEN_DIR = /^(audio ?books?|podcasts?)$/i;
 function isSpoken(e) {
@@ -220,9 +223,14 @@ function compute(list, year) {
     const dn = Math.floor(e.ts / 86400);
     S.day.set(dn, (S.day.get(dn) || 0) + sec);
   }
+  return finish(S, [...tracks.values()]);
+}
+
+// artist/album totals and rankings (both modes)
+function finish(S, trackList) {
   const artists = new Map(), albums = new Map();
-  for (const t of tracks.values()) {
-    for (const name of t.artists) {  // a song counts in full for each credited artist
+  for (const t of trackList) {
+    for (const name of t.artists) {  // full credit to each artist
       const a = artists.get(name) || { name, ms: 0, plays: 0 };
       a.ms += t.ms; a.plays += t.plays; artists.set(name, a);
     }
@@ -234,10 +242,11 @@ function compute(list, year) {
   }
   const byPlays = (a, b) => b.plays - a.plays || b.ms - a.ms;
   const byMs = (a, b) => b.ms - a.ms || b.plays - a.plays;
-  S.tracks = [...tracks.values()].filter(t => t.plays).sort(byPlays);
+  S.tracks = trackList.filter(t => t.plays).sort(byPlays);
   S.artists = [...artists.values()].filter(a => a.plays).sort(byMs);
   S.albums = [...albums.values()].filter(a => a.plays).sort(byMs);
-  S.uniqueTracks = tracks.size; S.nArtists = artists.size; S.nAlbums = albums.size;
+  S.uniqueTracks = trackList.length; S.nArtists = artists.size; S.nAlbums = albums.size;
+  if (!S.day) return S;  // iTunes data has no per-day times
   const days = [...S.day.keys()].sort((a, b) => a - b);
   S.bestDay = null; S.bestSec = 0; S.streak = 0;
   let run = 0, last = null;
@@ -248,6 +257,85 @@ function compute(list, year) {
     last = d; S.streak = Math.max(S.streak, run);
   }
   return S;
+}
+
+/* ---------- iTunes / Music library exports ----------
+   A plist with lifetime play counts and last-play dates per song, no single plays.
+   One export: all time or a rough year; two: the count difference is exact. */
+let snapshots = [];  // [{ name, date (unix s), tracks: Map(id -> track) }]
+
+const XML_ENT = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+const unxml = s => s.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (m, e) =>
+  e[0] !== "#" ? (XML_ENT[e] ?? m) : String.fromCodePoint(e[1].toLowerCase() === "x" ? parseInt(e.slice(2), 16) : +e.slice(1)));
+
+function parseItunes(txt, name) {
+  const start = txt.indexOf("<key>Tracks</key>");
+  if (start < 0 || !/<plist/.test(txt.slice(0, 4000))) return null;
+  const dm = /<key>Date<\/key>\s*<date>([^<]+)<\/date>/.exec(txt.slice(0, start));
+  let end = txt.indexOf("<key>Playlists</key>", start);
+  if (end < 0) end = txt.length;
+  const body = txt.slice(start, end), tracks = new Map();
+  const songRe = /<key>[^<]*<\/key>\s*<dict>([\s\S]*?)<\/dict>/g;
+  const kvRe = /<key>([^<]*)<\/key>\s*<(\w+)(?:\s*\/>|>([^<]*)<\/\2>)/g;
+  for (let m; (m = songRe.exec(body));) {
+    const o = {};
+    for (let p; (p = kvRe.exec(m[1]));)
+      o[unxml(p[1])] = p[2] === "true" ? true : p[2] === "false" ? false : p[2] === "integer" ? +p[3] : unxml(p[3] ?? "");
+    const t = itunesTrack(o);
+    if (t) tracks.set(t.id, t);
+  }
+  return { name, date: dm ? Date.parse(dm[1]) / 1000 : 0, tracks };
+}
+
+function itunesTrack(o) {
+  if (o["Has Video"] || o["Movie"] || o["TV Show"] || o["Music Video"]) return null;
+  let path = "/";
+  if (o.Location) { try { path = decodeURIComponent(new URL(o.Location).pathname); } catch { path = o.Location; } }
+  const tags = [o.Artist || "", o["Album Artist"] || "", o.Album || "", o.Name || "", o.Genre || ""];
+  const m = meta(path, tags);
+  if (!tagSet(o.Name) && (m.title === "/" || !m.title)) m.title = "Unknown song";
+  return {
+    id: o["Persistent ID"] || [o.Name, o.Artist, o.Album, o["Total Time"]].join("\u0001"),
+    plays: o["Play Count"] || 0, skips: o["Skip Count"] || 0, len: o["Total Time"] || 0,
+    last: o["Play Date UTC"] ? Date.parse(o["Play Date UTC"]) / 1000 : 0,
+    // same spoken-word rules as the log
+    spoken: o.Podcast === true || /audiobook/i.test(o.Kind || "") || isSpoken({ tags, path }),
+    ...m,
+  };
+}
+
+// period keys: "all", "y2026" (rough), "d0" (exact, snapshots 0 to 1)
+function computeItunes(key) {
+  const S = { year: 0, kind: key[0] === "y" ? "rough" : key[0] === "d" ? "exact" : "all", itunes: true,
+              totalMs: 0, plays: 0, skips: 0, spokenSkipped: 0 };
+  let src = snapshots[snapshots.length - 1], pick;
+  if (S.kind === "exact") {
+    // songs missing from the older export are new: all their plays count
+    const i = +key.slice(1), older = snapshots[i];
+    src = snapshots[i + 1];
+    S.from = older.date; S.to = src.date;
+    pick = t => { const o = older.tracks.get(t.id); return [Math.max(0, t.plays - (o ? o.plays : 0)), Math.max(0, t.skips - (o ? o.skips : 0))]; };
+  } else if (S.kind === "rough") {
+    S.year = +key.slice(1);
+    pick = t => [t.last && new Date(t.last * 1000).getUTCFullYear() === S.year ? t.plays : 0, 0];
+  } else pick = t => [t.plays, t.skips];
+  const list = [];
+  for (const t of src.tracks.values()) {
+    const [plays, skips] = pick(t);
+    S.skips += skips;
+    if (!plays) continue;
+    if (t.spoken) { S.spokenSkipped++; continue; }
+    const ms = plays * t.len;  // assumes full listens
+    list.push({ ...t, plays, ms });
+    S.plays += plays; S.totalMs += ms;
+  }
+  return finish(S, list);
+}
+
+const shortDate = s => { const d = new Date(s * 1000); return `${MONTHS[d.getUTCMonth()].slice(0, 3)} ${d.getUTCDate()}, ${d.getUTCFullYear()}`; };
+function periodLabel(S) {
+  if (!S.itunes) return S.year ? String(S.year) : "All time";
+  return S.kind === "exact" ? `${shortDate(S.from)} to ${shortDate(S.to)}` : S.kind === "rough" ? String(S.year) : "All time";
 }
 
 /* ---------- sample data ---------- */
@@ -332,22 +420,26 @@ function dayName(dn, withYear) {
 }
 
 function render() {
-  const S = compute(entries, period);
-  const label = period ? String(period) : "All time";
+  const S = mode === "itunes" ? computeItunes(period) : compute(entries, period);
+  const label = periodLabel(S);
   const out = $("#out");
   if (!S.plays) {
-    out.innerHTML = `<section class="band char empty"><div class="wrap"><span class="eyebrow">${esc(label)}</span><p class="big name">No plays logged here yet.</p><p class="sub">Turn on Settings, Playback Settings, Logging on the iPod, listen for a while, then drop the log in again.</p></div></section>`;
+    out.innerHTML = `<section class="band char empty"><div class="wrap"><span class="eyebrow">${esc(label)}</span>${S.itunes
+      ? `<p class="big name">No plays counted here.</p><p class="sub">${S.kind === "exact" ? "Play counts didn't change between these two exports. Sync your iPod before exporting, so its plays reach iTunes." : "No songs in this export have play counts for this period."}</p>`
+      : `<p class="big name">No plays logged here yet.</p><p class="sub">Turn on Settings, Playback Settings, Logging on the iPod, listen for a while, then drop the log in again.</p>`}</div></section>`;
     $("#summary").textContent = ""; return;
   }
   const min = S.totalMs / 60000, A = S.artists[0], T = S.tracks[0];
-  const h = S.hour.indexOf(Math.max(...S.hour)), h12 = h % 12 || 12;
-  const wd = S.wday.indexOf(Math.max(...S.wday)), mo = S.month.indexOf(Math.max(...S.month));
+  const clock = !S.itunes;  // iTunes has no per-play times
+  const h = clock ? S.hour.indexOf(Math.max(...S.hour)) : 0, h12 = h % 12 || 12;
+  const wd = clock ? S.wday.indexOf(Math.max(...S.wday)) : 0, mo = clock ? S.month.indexOf(Math.max(...S.month)) : 0;
   const hours = [...Array(24).keys()].map(i => (i % 12 || 12) + (i < 12 ? "a" : "p"));
+  const yearly = S.year || S.kind === "exact";
   out.innerHTML = `
   <section class="band green"><div class="wrap">
-    <span class="eyebrow">${esc(label)} Wrapped${isSample ? " &middot; sample data" : ""}</span>
+    <span class="eyebrow">${esc(label)} Wrapped${isSample ? " &middot; sample data" : ""}${S.kind === "rough" ? " &middot; estimate" : ""}</span>
     <p class="big">${fmt(min)}</p>
-    <p class="sub">minutes of music, about ${min >= 1440 ? (min / 1440).toFixed(1) + " days" : fmt(min / 60) + " hours"}. ${fmt(S.plays)} plays across ${fmt(S.uniqueTracks)} songs.</p>
+    <p class="sub">minutes of music${S.itunes ? " (plays × song length)" : ""}, about ${min >= 1440 ? (min / 1440).toFixed(1) + " days" : fmt(min / 60) + " hours"}. ${fmt(S.plays)} plays across ${fmt(S.uniqueTracks)} songs.</p>
   </div></section>
   <section class="band violet"><div class="wrap">
     <span class="eyebrow">Top artist</span>
@@ -359,11 +451,11 @@ function render() {
     <div><span class="eyebrow">Top albums</span>${rankList(S.albums, "ms", a => `${a.artist} · ${fmt(a.ms / 60000)} min`)}</div>
   </div></section>
   <section class="band magenta"><div class="wrap cols">
-    <div><span class="eyebrow">${period ? "Song of the year" : "Most played song"}</span>
+    <div><span class="eyebrow">${yearly ? "Song of the year" : "Most played song"}</span>
       <p class="big name" style="margin-top:6px">${esc(T.title)}</p>
       <p class="sub">${esc(T.artist)} · played ${fmt(T.plays)} times</p></div>
     <div><span class="eyebrow">Top songs</span>${rankList(S.tracks, "plays", t => `${t.artist} · ${fmt(t.plays)} plays`)}</div>
-  </div></section>
+  </div></section>${clock ? `
   <section class="band orange"><div class="wrap">
     <span class="eyebrow">Your listening clock</span>
     <div class="facts">
@@ -382,29 +474,40 @@ function render() {
       <div><b>${S.day.size}</b><span>days with music</span></div>
     </div>
     <div class="chart">${heatmap(S)}</div>
-  </div></section>
+  </div></section>` : ""}
   <section class="band char"><div class="wrap">
     <span class="eyebrow">By the numbers</span>
     <div class="facts">
       <div><b>${fmt(S.uniqueTracks)}</b><span>different songs</span></div>
       <div><b>${fmt(S.nArtists)}</b><span>artists</span></div>
       <div><b>${fmt(S.nAlbums)}</b><span>albums</span></div>
-      <div><b>${fmt(S.skips)}</b><span>skips under 30 s</span></div>
+      ${S.kind !== "rough" ? `<div><b>${fmt(S.skips)}</b><span>${S.itunes ? "skips (as iTunes counts them)" : "skips under 30 s"}</span></div>` : ""}
     </div>
     ${S.first ? `<p class="sub">First song of ${period ? "the year" : "your history"}: <strong style="color:var(--on-band)">${esc(S.first.title)}</strong> by ${esc(S.first.artist)}, ${dayName(Math.floor(S.firstTs / 86400), true)}.</p>` : ""}
     ${S.spokenSkipped ? `<p class="sub">Audiobooks and podcasts are not counted.</p>` : ""}
-  </div></section>`;
+  </div></section>${S.itunes ? `
+  <section class="band blue"><div class="wrap">
+    <span class="eyebrow">About these numbers</span>
+    <p class="sub">${S.kind === "rough"
+      ? `This is an estimate. It shows the songs you last played in ${S.year}, but with their all-time play counts, so songs you also loved in earlier years rank higher than they should. Export your library again next year and drop both files in for an exact year.`
+      : S.kind === "exact"
+      ? `Exact plays between your two exports: the difference in iTunes play counts. Minutes assume each play was a full listen.`
+      : `Every play iTunes has counted since the song was added. Minutes assume each play was a full listen.`}</p>
+    <p class="sub">iTunes doesn't record when each play happened, so there's no listening clock, busiest day or streak. The Rockbox plugin logs those.</p>
+  </div></section>` : ""}`;
   $("#summary").textContent = [
-    `${label} Wrapped (Rockbox)`, `${fmt(min)} minutes · ${fmt(S.plays)} plays · ${fmt(S.uniqueTracks)} songs`, "",
+    `${label} Wrapped (${S.itunes ? "iTunes" : "Rockbox"}${S.kind === "rough" ? ", estimate" : ""})`, `${fmt(min)} minutes · ${fmt(S.plays)} plays · ${fmt(S.uniqueTracks)} songs`, "",
     "Top artists:", ...S.artists.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} (${fmt(a.ms / 60000)} min)`), "",
     "Top songs:", ...S.tracks.slice(0, 5).map((t, i) => `${i + 1}. ${t.title} - ${t.artist} (${t.plays} plays)`), "",
-    "Top albums:", ...S.albums.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} - ${a.artist}`), "",
-    `Peak hour ${h12} ${h < 12 ? "AM" : "PM"} · favourite day ${DAYS[wd]} · biggest month ${MONTHS[mo]}`,
-    `Biggest day ${dayName(S.bestDay, true)} (${fmt(S.bestSec / 60)} min) · longest streak ${S.streak} days`,
+    "Top albums:", ...S.albums.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} - ${a.artist}`),
+    ...(clock ? ["",
+      `Peak hour ${h12} ${h < 12 ? "AM" : "PM"} · favourite day ${DAYS[wd]} · biggest month ${MONTHS[mo]}`,
+      `Biggest day ${dayName(S.bestDay, true)} (${fmt(S.bestSec / 60)} min) · longest streak ${S.streak} days`] : []),
   ].join("\n");
 }
 
 function renderControls() {
+  if (mode === "itunes") return renderItunesControls();
   const years = [...new Set(entries.map(e => new Date(e.ts * 1000).getUTCFullYear()))].sort((a, b) => b - a);
   if (period !== 0 && !years.includes(period)) period = years[0] ?? 0;
   $("#years").innerHTML = [...years, 0].map(y => `<button type="button" class="chip" data-y="${y}" aria-pressed="${y === period}">${y || "All time"}</button>`).join("");
@@ -417,24 +520,69 @@ function renderControls() {
     : `<span class="tag">${fmt(entries.length)} log entries</span><span>${esc(sources.join(", "))}</span><span>${span}</span>`;
 }
 
+function renderItunesControls() {
+  const opts = [];
+  // exact periods (newest first), rough years, all time
+  for (let i = snapshots.length - 2; i >= 0; i--)
+    opts.push([`d${i}`, `${shortDate(snapshots[i].date)} to ${shortDate(snapshots[i + 1].date)}`]);
+  const newest = snapshots[snapshots.length - 1];
+  const years = new Set();
+  for (const t of newest.tracks.values()) if (t.last && t.plays) years.add(new Date(t.last * 1000).getUTCFullYear());
+  [...years].sort((a, b) => b - a).forEach(y => opts.push([`y${y}`, `${y} (estimate)`]));
+  opts.push(["all", "All time"]);
+  if (!opts.some(o => o[0] === period)) period = opts[0][0];
+  $("#years").innerHTML = opts.map(([k, l]) => `<button type="button" class="chip" data-y="${k}" aria-pressed="${k === period}">${esc(l)}</button>`).join("");
+  $("#status").innerHTML = `<span class="tag">${snapshots.length === 1 ? "1 iTunes export" : snapshots.length + " iTunes exports"}</span>`
+    + snapshots.map(s => `<span>${esc(s.name)}: ${fmt(s.tracks.size)} songs, ${s.date ? "exported " + shortDate(s.date) : "no export date"}</span>`).join("")
+    + (snapshots.length === 1 ? `<span>Add an export from a year earlier (or later) for exact plays.</span>` : "");
+}
+
 $("#years").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
-  period = +b.dataset.y; renderControls(); render();
+  period = mode === "itunes" ? b.dataset.y : +b.dataset.y; renderControls(); render();
 });
 
+// each .xml export is a snapshot; later drops add to the earlier ones
+async function loadItunes(files) {
+  const bad = [], got = [];
+  for (const f of files) {
+    const snap = parseItunes(await f.text(), f.name);
+    if (!snap || !snap.tracks.size) { bad.push(f.name); continue; }
+    if (!snap.date) snap.date = Math.floor(f.lastModified / 1000);
+    got.push(snap);
+  }
+  if (!got.length) {
+    $("#status").innerHTML = `<span class="tag">Not an iTunes library export</span><span>${esc(bad.join(", "))}. In iTunes or Music: File, Library, Export Library.</span>`;
+    return;
+  }
+  if (mode !== "itunes" || isSample) snapshots = [];
+  for (const snap of got) {
+    // the same export dropped twice replaces itself
+    snapshots = snapshots.filter(s => !(s.date === snap.date && s.tracks.size === snap.tracks.size));
+    snapshots.push(snap);
+  }
+  snapshots.sort((a, b) => a.date - b.date);
+  mode = "itunes"; isSample = false; period = null;
+  renderControls(); render();
+}
+
 async function loadFiles(files) {
-  const map = new Map(isSample ? [] : entries.map(e => [e.ts + "|" + e.path, e]));
-  if (isSample) sources = [];
+  files = [...files];
+  const xml = files.filter(f => /\.xml$/i.test(f.name));
+  if (xml.length) return loadItunes(xml);
+  const fresh = isSample || mode !== "log";  // replace rather than add
+  const map = new Map(fresh ? [] : entries.map(e => [e.ts + "|" + e.path, e]));
+  const oldSources = sources;
+  if (fresh) sources = [];
   let added = 0;
-  // Keep file order, not timestamp order: after an iPod clock reset the timestamps are wrong
-  // but the order lines were written is still the real listening order (wrapped.c relies on
-  // the same). Read files in the order the plugin merges them: history, rotated logs, live log.
+  // keep file order, not time order (clock resets break timestamps, not order);
+  // read in the plugin's merge order: history, rotated logs, live log
   const rank = n => /^wrapped_history/i.test(n) ? 0 : /^playback\.log$/i.test(n) ? 2 : 1;
   files = [...files].sort((a, b) => rank(a.name) - rank(b.name) || (a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1));
   for (const f of files) { added += parseText(await f.text(), map); sources.push(f.name); }
-  if (!map.size) { $("#status").innerHTML = `<span class="tag">No log entries found</span><span>Pick playback.log from the .rockbox folder on your iPod.</span>`; return; }
+  if (!map.size) { sources = oldSources; $("#status").innerHTML = `<span class="tag">No log entries found</span><span>Pick playback.log from the .rockbox folder on your iPod, or an iTunes library export (.xml).</span>`; return; }
   entries = [...map.values()];
-  isSample = false; period = null;
+  isSample = false; period = null; mode = "log";
   renderControls(); render();
 }
 

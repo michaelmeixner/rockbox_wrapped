@@ -1,12 +1,7 @@
 #!/bin/bash
-# Adds Wrapped to a clean Rockbox source tree.
-#
-#   ci/prepare-tree.sh ROCKBOX_TREE
-#
-# Applies rockbox-wrapped.patch (which registers the plugin in SOURCES and
-# CATEGORIES) and checks the copy of wrapped.c inside the patch matches the
-# repo's wrapped.c, so a forgotten patch update can't ship old code.
-# Safe to run twice on the same tree.
+# ci/prepare-tree.sh ROCKBOX_TREE
+# Applies rockbox-wrapped.patch (safe to rerun) and checks its wrapped.c
+# matches the repo's, so a stale patch can't ship old code.
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 repo="$(dirname "$here")"

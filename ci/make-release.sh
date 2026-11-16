@@ -1,13 +1,7 @@
 #!/bin/bash
-# Gathers the build results into release files.
-#
-#   ci/make-release.sh BUILDS_DIR DIST_DIR [VERSION]
-#
-# BUILDS_DIR holds wrapped-*.rock and results-*.tsv files from ci/build-all.sh.
-# DIST_DIR gets:
-#   wrapped-<label>-<target>.rock          every successful build
-#   rockbox-wrapped-<label>-all-players.zip  one per Rockbox version
-#   release-notes.md                       a table of every player and file
+# ci/make-release.sh BUILDS_DIR DIST_DIR [VERSION]
+# Turns build-all.sh output into the .rock files, one all-players zip per
+# Rockbox version, and release-notes.md.
 set -euo pipefail
 src="$(cd "${1:?usage: make-release.sh BUILDS_DIR DIST_DIR [VERSION]}" && pwd)"
 mkdir -p "${2:?dist dir}"; dist="$(cd "$2" && pwd)"
@@ -52,8 +46,8 @@ done
         row="$row – |"
       fi
     done
-    if [ $built = 1 ]; then echo "$row"; fi   # (an `&&` here would end the
-  done                                       #  loop "failed" under set -e)
+    if [ $built = 1 ]; then echo "$row"; fi   # not &&: fails under set -e
+  done
   noclock=$(awk -F'\t' '$3 == "noclock" { print $4 }' "$dist/results.tsv" | sort -u | paste -sd, - | sed 's/,/, /g')
   failed=$(awk -F'\t' '$3 == "failed" { print $4 " (" $1 ")" }' "$dist/results.tsv" | sort -u | paste -sd, - | sed 's/,/, /g')
   echo

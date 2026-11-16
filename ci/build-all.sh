@@ -1,19 +1,10 @@
 #!/bin/bash
-# Builds wrapped.rock for every player that uses the given toolchains.
-#
-#   ci/build-all.sh ROCKBOX_TREE LABEL ARCH_LETTERS OUTDIR [TARGET...]
-#
-# LABEL names the Rockbox version in the file names (e.g. "4.0", "dev").
-# Each player gets OUTDIR/wrapped-LABEL-TARGET.rock, and every result is
-# recorded in OUTDIR/results-LABEL-ARCH.tsv as
-#   label <TAB> target <TAB> ok|noclock|failed <TAB> full name
-# Players without a clock never build the plugin (SOURCES has #if CONFIG_RTC)
-# and are recorded as "noclock". Exits 1 if any player failed to compile.
-# Pass TARGET names to build only those.
+# ci/build-all.sh ROCKBOX_TREE LABEL ARCH_LETTERS OUTDIR [TARGET...]
+# Builds OUTDIR/wrapped-LABEL-TARGET.rock per player and logs each result
+# (ok|noclock|failed) to OUTDIR/results-LABEL-ARCH.tsv. Exits 1 on any failure.
 set -uo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-# pwd -P: the real (short) path, not a symlink's. Rockbox's dependency step
-# fails with "Argument list too long" when the tree's path is long.
+# real (short) path: long ones break Rockbox's deps ("Argument list too long")
 tree="$(cd "${1:?usage: build-all.sh ROCKBOX_TREE LABEL ARCH_LETTERS OUTDIR [TARGET...]}" && pwd -P)"
 label="${2:?label}"; arch="${3:?arch letters}"
 mkdir -p "${4:?outdir}"; out="$(cd "$4" && pwd)"; shift 4
@@ -36,8 +27,7 @@ while read -r target a name; do
     printf '%s\t%s\tfailed\t%s\n' "$label" "$target" "$name" >> "$results"
     failed=1; continue
   fi
-  # Ask the build for its plugin list (SOURCES run through the target's own
-  # config). Wrapped is only listed on players with a clock (#if CONFIG_RTC).
+  # Wrapped is only in the plugin list on players with a clock
   plugins=$(cd "$dir" && make --no-print-directory -s -f Makefile \
               -f "$here/print-plugins.mk" print-plugins 2>> "$log")
   if [[ " $plugins " != *"/wrapped.c "* ]]; then
