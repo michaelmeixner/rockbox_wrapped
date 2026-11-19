@@ -4,128 +4,159 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rockbox Wrapped</title>
-<meta name="description" content="A Spotify Wrapped–style year in review from your Rockbox iPod's playback log. Runs in your browser; nothing is uploaded.">
+<meta name="description" content="Your stats on your player of choice.">
 <meta property="og:title" content="Rockbox Wrapped">
-<meta property="og:description" content="Your year in music from the playback log your Rockbox iPod already keeps.">
+<meta property="og:description" content="Your stats on your player of choice.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://www.michaelmeixner.com/rockbox_wrapped/">
+<meta property="og:image" content="https://www.michaelmeixner.com/rockbox_wrapped/ipod.jpg">
 <link rel="canonical" href="https://www.michaelmeixner.com/rockbox_wrapped/">
-<meta name="theme-color" content="#127a3c">
+<meta name="theme-color" content="#1b1b1b">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23127a3c'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='%23ffe15a'/%3E%3Crect x='14' y='9' width='4' height='16' rx='1' fill='%23fff'/%3E%3Crect x='21' y='13' width='4' height='12' rx='1' fill='%23fff'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400&display=swap">
 <style>
-/* full-width colour bands, one per stat, in the plugin's slide colours */
+/* one dark page, the colour of the desk in the photo, so the screen does the talking */
 :root {
-  --bg: #eef0ee;
-  --fg: #151816;
-  --muted: #5b625d;
-  --line: #cfd4d0;
-  --panel: #ffffff;
-  --accent: #127a3c;
-  --b-green: #127a3c; --b-violet: #462aaa; --b-magenta: #aa1e5a;
-  --b-char: #1b1d1c; --b-orange: #b4500f; --b-blue: #14509f;
-  --on-band: #ffffff; --on-band-dim: rgba(255,255,255,.72); --band-gold: #ffe15a;
-  --display: "Bricolage Grotesque", "Arial Narrow", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --page: #1b1b1b; --text: #ecebe6; --dim: #a4a39e; --line: #3b3b39; --well: #242423;
+  --gold: #ffe15a;  /* the plugin's heading colour */
+  --serif: "Newsreader", Georgia, serif;
+  color-scheme: dark;
 }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #101211; --fg: #e8ebe9; --muted: #9aa29d; --line: #2a2e2c; --panel: #181b19; --accent: #3fcf78;
-  --b-char: #232726; color-scheme: dark } }
-:root[data-theme="dark"] {
-  --bg: #101211; --fg: #e8ebe9; --muted: #9aa29d; --line: #2a2e2c; --panel: #181b19; --accent: #3fcf78;
-  --b-char: #232726; color-scheme: dark }
-
 * { box-sizing: border-box }
-body { background: var(--bg); color: var(--fg); font-family: var(--display); font-size: 16px; line-height: 1.45 }
-.wrap { max-width: 880px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
-header .wrap { padding-block: 28px 18px; display: grid; gap: 14px }
-h1 { font-size: clamp(2rem, 6vw, 3.2rem); font-weight: 800; line-height: 1; margin: 0; letter-spacing: -.02em; text-wrap: balance }
-.lede { margin: 0; color: var(--muted); max-width: 60ch }
-.mono, code { font-family: var(--mono); font-size: .86em }
+body { margin: 0; background: var(--page); color: var(--text); font: 400 1.125rem/1.6 var(--serif) }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+a { color: inherit; text-decoration-color: var(--gold); text-decoration-thickness: 2px; text-underline-offset: 3px }
+a:hover { color: var(--gold) }
+code { font: inherit; font-weight: 650 }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px }
 
-.drop { border: 1.5px dashed var(--line); background: var(--panel); border-radius: 10px; padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between }
-.drop.over { border-color: var(--accent) }
-.drop p { margin: 0; min-width: 0; flex: 1 1 260px; font-size: .95rem }
-.btn { font: 500 .9rem var(--mono); border: 1.5px solid var(--fg); background: transparent; color: var(--fg); border-radius: 6px; padding: 8px 14px; cursor: pointer }
-.btn.primary { background: var(--fg); color: var(--bg) }
-.btn:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+/* intro and photo */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 8px 56px; align-items: center; padding-block: 40px 16px }
+.hero h1 { margin: 0 0 22px; line-height: 0 }
+#wordmark { width: calc(var(--w) * 2px); max-width: 100%; image-rendering: pixelated }
+.slogan { margin: 0 0 18px; font-size: clamp(1.6rem, 3.6vw, 2.2rem); line-height: 1.15; font-weight: 600; max-width: 22ch }
+.hero p { max-width: 50ch }
+.links { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 22px; font-weight: 650 }
+.photo { display: block; width: 100%; height: auto; border-radius: 14px }
+@media (max-width: 800px) {
+  .hero { grid-template-columns: minmax(0, 1fr); padding-top: 28px }
+  .photo { max-width: 340px; margin: 0 auto }
+}
+
+/* the screen and what feeds it */
+.player { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px 48px; align-items: start; padding-block: 32px 56px }
+@media (max-width: 1000px) { .player { grid-template-columns: minmax(0, 1fr) } #device { order: -1 } }
+.player h2 { margin: 0 0 14px; font-size: 1.6rem; font-weight: 650 }
+.side { display: grid; gap: 18px; align-content: start }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 16px 18px 18px; display: grid; gap: 12px }
+.drop.over { border-color: var(--gold); border-style: solid }
+.drop p { margin: 0; color: var(--dim); font-size: .98rem }
+.drop ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px }
+.drop li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 12px }
+.drop li span { font-weight: 650 }
+.drop li small { color: var(--dim); font-size: .9rem }
 input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0 }
-.status { font: .82rem var(--mono); color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 14px }
-.status .tag { color: var(--accent); font-weight: 500 }
-.chips { display: flex; flex-wrap: wrap; gap: 8px }
-.chip { font: 500 .85rem var(--mono); padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer }
-.chip[aria-pressed=true] { background: var(--fg); color: var(--bg); border-color: var(--fg) }
+.btn { font: 650 1.05rem var(--serif); padding: 9px 16px; border-radius: 8px; border: 2px solid var(--text); background: transparent; color: var(--text); cursor: pointer; justify-self: start }
+.btn.primary { background: var(--text); color: var(--page) }
+.btn:hover:not(:disabled) { border-color: var(--gold); background: var(--gold); color: var(--page) }
+.btn:disabled { opacity: .35; cursor: default }
+.status { display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: .95rem; color: var(--dim) }
+.status .tag { color: var(--text); font-weight: 650 }
+.status:empty { display: none }
+.periods { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { font: 650 .98rem var(--serif); padding: 6px 13px; border-radius: 8px; border: 2px solid var(--line); background: transparent; color: var(--text); cursor: pointer }
+.chip:hover { border-color: var(--text) }
+.chip[aria-pressed=true] { background: var(--text); border-color: var(--text); color: var(--page) }
 
-.band { color: var(--on-band) }
-.band .wrap { padding-block: 34px; display: grid; gap: 10px }
-.green { background: var(--b-green) } .violet { background: var(--b-violet) } .magenta { background: var(--b-magenta) }
-.char { background: var(--b-char) } .orange { background: var(--b-orange) } .blue { background: var(--b-blue) }
-.eyebrow { font: 500 .78rem var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--band-gold) }
-.big { font-size: clamp(3rem, 13vw, 6.5rem); font-weight: 800; line-height: .92; letter-spacing: -.035em; margin: 0; overflow-wrap: anywhere; text-wrap: balance }
-.big.name { font-size: clamp(2.2rem, 9vw, 4.6rem) }
-.sub { color: var(--on-band-dim); margin: 0; font-size: 1.05rem }
-.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px }
-.cols > * { min-width: 0 }
-ol.rank { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 10px }
-ol.rank li { display: grid; grid-template-columns: 1.6em 1fr; gap: 4px 8px; align-items: baseline }
-ol.rank .n { font: 500 .85rem var(--mono); color: var(--band-gold) }
-ol.rank .t { font-weight: 800; font-size: 1.12rem; overflow-wrap: anywhere }
-ol.rank .m { grid-column: 2; font: .8rem var(--mono); color: var(--on-band-dim) }
-ol.rank .bar { grid-column: 2; height: 4px; background: rgba(255,255,255,.18); border-radius: 2px }
-ol.rank .bar i { display: block; height: 100%; background: var(--on-band); border-radius: 2px }
-.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 18px 24px; margin-top: 8px }
-.facts div { display: grid; gap: 2px }
-.facts b { font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums }
-.facts span { font: .78rem var(--mono); color: var(--on-band-dim) }
-.chart { overflow-x: auto }
-.chart svg { display: block; width: 100%; min-width: 520px; height: auto }
-.chart.bars svg { min-width: 0 }
-.chart svg text { font-family: var(--mono); font-size: 11px; fill: var(--on-band-dim) }
-footer .wrap { padding-block: 28px 40px; display: grid; gap: 12px; color: var(--muted); font-size: .9rem }
-footer pre { font: .78rem var(--mono); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; overflow-x: auto; margin: 0; max-height: 220px }
-.empty .wrap { padding-block: 40px }
-@media (prefers-reduced-motion: no-preference) { ol.rank .bar i { transition: width .5s ease } }
-a { color: var(--accent); text-underline-offset: 2px }
-.links { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 500 .85rem var(--mono) }
+#device { display: grid; gap: 14px; justify-items: center; min-width: 0 }
+.screen { background: #000; padding: 10px; border-radius: 12px; line-height: 0 }
+#lcd { display: block; width: 640px; max-width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; cursor: pointer; touch-action: pan-y }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center }
+#count { min-width: 5.5em; text-align: center; color: var(--dim); font-variant-numeric: tabular-nums }
+.controls .save { margin-left: 8px }
+
+footer { border-top: 1px solid var(--line) }
+footer .wrap { padding-block: 32px 56px; display: grid; gap: 16px; color: var(--dim); font-size: .98rem }
+.share { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center }
+footer pre { margin: 0; padding: 14px 16px; max-height: 240px; overflow: auto; background: var(--well); border-radius: 8px; color: var(--text); font: .95rem/1.5 var(--serif); white-space: pre-wrap }
+footer pre:empty { display: none }
+details { border-top: 1px solid var(--line); padding-top: 12px }
+summary { cursor: pointer; color: var(--text); font-weight: 700 }
+details p { margin: 10px 0 0; max-width: 68ch }
+.credit { margin: 8px 0 0; font-size: .92rem }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <h1>Rockbox Wrapped</h1>
-    <p class="lede">Your year in music from the playback log your Rockbox iPod already keeps, or from your iTunes play counts. Everything is read in this page; nothing is uploaded.</p>
+<header class="wrap hero">
+  <div>
+    <h1><canvas id="wordmark" aria-hidden="true"></canvas><span class="sr">Rockbox Wrapped</span></h1>
+    <p class="slogan">Your stats on your player of choice.</p>
+    <p>My iPod runs Rockbox, and I wanted a Wrapped for it like the one Spotify hands out every December. So I wrote a plugin that builds one on the iPod itself, from the log Rockbox keeps of everything it plays. This page reads the same log and draws the same slides, just bigger.</p>
     <nav class="links" aria-label="Project">
       <a href="https://github.com/michaelmeixner/rockbox_wrapped/releases/latest">Get the iPod plugin</a>
       <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>
     </nav>
-    <div class="drop" id="drop">
-      <p>Drop <code>wrapped_history.log</code> (best, because it includes your tags), <code>playback.log</code>, or any <code>playback_0001.log</code> files from your iPod's <code>.rockbox</code> folder. You can drop several at once.<br>
-      <span style="color:var(--muted)">Stock iPod OS? Drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</span></p>
-      <label class="btn primary" for="file">Choose files</label>
-      <input type="file" id="file" multiple accept=".log,.txt,.xml,text/plain,text/xml,application/xml">
-    </div>
-    <div class="status" id="status"></div>
-    <div class="chips" id="years" role="group" aria-label="Period"></div>
   </div>
+  <img class="photo" src="ipod.jpg" width="720" height="900" alt="A white iPod Video running Rockbox Wrapped. The screen shows the Big days slide: most listening in one day, November 12, 57 minutes; longest streak, 2 days in a row.">
 </header>
 
-<main id="out"></main>
+<main class="wrap player">
+  <section class="side" aria-labelledby="yours">
+    <h2 id="yours">See yours</h2>
+    <div class="drop" id="drop">
+      <p>Drop these from the <code>.rockbox</code> folder on your iPod, as many as you have:</p>
+      <ul>
+        <li><span>wrapped_history.log</span><small>best, it keeps your tags</small></li>
+        <li><span>playback.log</span></li>
+        <li><span>playback_0001.log</span><small>and the other numbered ones</small></li>
+      </ul>
+      <label class="btn primary" for="file">Choose files</label>
+      <input type="file" id="file" multiple accept=".log,.txt,.xml,text/plain,text/xml,application/xml">
+      <p>On the stock iPod software? Drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</p>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="periods" id="years" role="group" aria-label="Period"></div>
+    <p style="margin:0;color:var(--dim);font-size:.95rem">Nothing is uploaded. Your files are read in this page and stay on your computer.</p>
+  </section>
+
+  <section id="device" aria-label="Slides">
+    <div class="screen"><canvas id="lcd" width="320" height="240" tabindex="0" aria-describedby="slidetext"></canvas></div>
+    <p id="slidetext" class="sr" aria-live="polite"></p>
+    <div class="controls">
+      <button class="btn" id="prev" type="button">Previous</button>
+      <span id="count"></span>
+      <button class="btn" id="next" type="button">Next</button>
+      <button class="btn save" id="save" type="button">Save slide as picture</button>
+    </div>
+  </section>
+</main>
 
 <footer>
   <div class="wrap">
-    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <div class="share">
       <button class="btn" id="copy" type="button">Copy summary as text</button>
-      <span id="copied" class="mono"></span>
+      <span id="copied"></span>
     </div>
     <pre id="summary" aria-label="Summary text"></pre>
-    <p>Counting rules match the iPod plugin: a play is 30 seconds or more, a stop-and-resume of the same track counts once. Audiobooks and podcasts are left out: anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code>. Artist, album and title come from the tags the plugin saves in <code>wrapped_history.log</code>; a raw <code>playback.log</code> stores only file paths, so for those plays they come from the <code>/Artist/Album/Track</code> folders.</p>
-    <p>iTunes exports: iTunes keeps one running play count per song plus the date of its last play, not a record of each play. With one export you get all time, or an estimate for a year: the songs last played that year, with their all-time counts. With two exports, the difference in counts gives the exact plays between them. Minutes are plays times song length. Sync your iPod before exporting, so its plays reach iTunes. Videos, podcasts and audiobooks are left out.</p>
-    <p>Rockbox Wrapped by Michael Meixner · <a href="https://github.com/michaelmeixner/rockbox_wrapped">source on GitHub</a> · GPL v2 or later. Not affiliated with Rockbox or Spotify.</p>
+    <details>
+      <summary>How plays are counted</summary>
+      <p>The same rules as the iPod plugin. A play is 30 seconds or more, and stopping and resuming the same track counts once. Audiobooks and podcasts are left out: anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code>.</p>
+      <p>Artist, album and title come from the tags the plugin saves in <code>wrapped_history.log</code>. A plain <code>playback.log</code> only stores file paths, so for those plays they come from your <code>/Artist/Album/Track</code> folders.</p>
+    </details>
+    <details>
+      <summary>How iTunes numbers work</summary>
+      <p>iTunes keeps one running play count per song and the date of its last play, not a record of each play. One export gives you all time, or an estimate for a year: the songs last played that year, with their all-time counts. Two exports give exact plays between them, from the difference in counts.</p>
+      <p>Minutes are plays times song length. Sync your iPod before exporting so its plays reach iTunes. Videos, podcasts and audiobooks are left out.</p>
+    </details>
+    <p class="credit">Rockbox Wrapped by Michael Meixner, GPL v2 or later. <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>. Slides are drawn with the Adobe Helvetica bitmap fonts that ship with Rockbox (copyright Adobe Systems and Digital Equipment Corporation; notice in <a href="fonts.js">fonts.js</a>). Not affiliated with Rockbox, Apple or Spotify.</p>
   </div>
 </footer>
 
+<script src="fonts.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -374,137 +405,368 @@ function sampleEntries() {
   return out.sort((a, b) => a.ts - b.ts);
 }
 
-/* ---------- rendering ---------- */
-function rankList(items, top, label) {
-  if (!items.length) return "";
-  const max = items[0][top] || 1;
-  return `<ol class="rank">${items.slice(0, 5).map((x, i) => `<li><span class="n">${i + 1}</span><span class="t">${esc(x.title || x.name)}</span><span class="m">${esc(label(x))}</span><span class="bar"><i style="width:${(x[top] / max * 100).toFixed(1)}%"></i></span></li>`).join("")}</ol>`;
-}
+/* ---------- iPod slides: build_slides, paginate and draw_page from wrapped.c ---------- */
+const LCD_W = 320, LCD_H = 240, PAGE_AREA = LCD_H - 12, TEXT_W = LCD_W - 8;
+const L_BODY = 0, L_HEAD = 1, L_BIG = 2, L_DIM = 3, GLUE = 16;
+const SLIDE_BG = ["#12783c", "#4628aa", "#aa1e5a", "#181818", "#b4500f", "#1450a0"];
+const INK = { [L_HEAD]: "#ffe15a", [L_DIM]: "#d7d7d7" };
+const BLANK = { style: L_BODY, text: "" };
 
-function barChart(values, labels, every) {
-  const W = 640, H = 170, pad = 22, max = Math.max(...values, 1), bw = (W - 8) / values.length;
-  const peak = values.indexOf(Math.max(...values));
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Minutes listened">`;
-  values.forEach((v, i) => {
-    const h = (v / max) * (H - pad - 22), x = 4 + i * bw;
-    s += `<rect x="${(x + bw * .15).toFixed(1)}" y="${(H - pad - h).toFixed(1)}" width="${(bw * .7).toFixed(1)}" height="${Math.max(h, 1).toFixed(1)}" rx="2" fill="${i === peak ? "var(--band-gold)" : "rgba(255,255,255,.55)"}"/>`;
-    if (i % every === 0) s += `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${labels[i]}</text>`;
-  });
-  s += `<text x="${(4 + peak * bw + bw / 2).toFixed(1)}" y="${(H - pad - (values[peak] / max) * (H - pad - 22) - 6).toFixed(1)}" text-anchor="middle" style="fill:var(--band-gold)">${fmt(values[peak] / 60)} min</text>`;
-  return s + "</svg>";
-}
+// Rockbox's bitmap fonts (fonts.js): body is the theme default, big is the plugin's headline font
+for (const F of [FONTS.body, FONTS.big]) { F.h = F.asc + F.desc; F.cache = new Map(); }
+const fontOf = style => (style & 15) === L_BIG ? FONTS.big : FONTS.body;
+const measureCtx = document.createElement("canvas").getContext("2d");
+const fallbackFont = F => `${F === FONTS.big ? "bold " : ""}${Math.round(F.h * .72)}px sans-serif`;
 
-function heatmap(S) {
-  if (!S.year) return "";
-  const startDn = Math.floor(Date.UTC(S.year, 0, 1) / 86400000);
-  const endDn = Math.floor(Date.UTC(S.year + 1, 0, 1) / 86400000);
-  const startDow = new Date(startDn * 86400000).getUTCDay();
-  const c = 11, g = 2, weeks = Math.ceil((endDn - startDn + startDow) / 7);
-  const W = 30 + weeks * (c + g), H = 7 * (c + g) + 22;
-  const max = Math.max(...[...S.day.values()], 1);
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Minutes per day">`;
-  for (let dn = startDn; dn < endDn; dn++) {
-    const i = dn - startDn + startDow, wk = Math.floor(i / 7), dw = i % 7, v = S.day.get(dn) || 0;
-    const a = v ? (0.25 + 0.75 * v / max).toFixed(2) : 0.1;
-    s += `<rect x="${30 + wk * (c + g)}" y="${18 + dw * (c + g)}" width="${c}" height="${c}" rx="2" fill="${dn === S.bestDay ? "var(--band-gold)" : `rgba(255,255,255,${a})`}"><title>${new Date(dn * 86400000).toISOString().slice(0, 10)}: ${fmt(v / 60)} min</title></rect>`;
-    const dt = new Date(dn * 86400000);
-    if (dt.getUTCDate() === 1) s += `<text x="${30 + wk * (c + g)}" y="12">${MONTHS[dt.getUTCMonth()].slice(0, 3)}</text>`;
+function glyph(F, cp) {
+  if (F.cache.has(cp)) return F.cache.get(cp);
+  let g = null;
+  const raw = F.g[cp];
+  if (raw) {
+    const [dw, w, h, xo, yo, hex] = raw, bpr = Math.ceil(w / 8) * 2, px = [];
+    for (let r = 0; r < h; r++) {
+      const row = parseInt(hex.slice(r * bpr, (r + 1) * bpr), 16);
+      for (let x = 0; x < w; x++) if (row & 2 ** (bpr * 4 - 1 - x)) px.push(x + xo, F.asc - yo - h + r);
+    }
+    g = { dw, px };
   }
-  ["Mon", "Wed", "Fri"].forEach((d, k) => s += `<text x="0" y="${18 + (1 + 2 * k) * (c + g) + 9}">${d}</text>`);
-  return s + "</svg>";
+  F.cache.set(cp, g);
+  return g;
 }
 
-function dayName(dn, withYear) {
+// characters the bitmap font lacks (CJK and so on) fall back to the browser's font
+function charWidth(F, ch) {
+  const g = glyph(F, ch.codePointAt(0));
+  if (g) return g.dw;
+  measureCtx.font = fallbackFont(F);
+  return Math.ceil(measureCtx.measureText(ch).width);
+}
+const textWidth = (s, F) => { let w = 0; for (const ch of s) w += charWidth(F, ch); return w; };
+
+function drawText(ctx, s, x, y, F) {
+  for (const ch of s) {
+    const g = glyph(F, ch.codePointAt(0));
+    if (g) { for (let i = 0; i < g.px.length; i += 2) ctx.fillRect(x + g.px[i], y + g.px[i + 1], 1, 1); x += g.dw; }
+    else { ctx.font = fallbackFont(F); ctx.textBaseline = "alphabetic"; ctx.fillText(ch, x, y + F.asc); x += charWidth(F, ch); }
+  }
+}
+
+// draw_wrapped: break at spaces to fit the screen, cutting words that are too long alone
+function wrapText(text, F) {
+  const out = [];
+  let p = text;
+  while (p) {
+    let fit = 0, j = 0;
+    for (;;) {
+      while (j < p.length && p[j] !== " ") j++;
+      if (textWidth(p.slice(0, j), F) > TEXT_W) break;
+      fit = j;
+      if (j >= p.length) break;
+      j++;
+    }
+    if (!fit) {
+      let s = "";
+      for (const ch of p) { if (ch === " " || (s && textWidth(s + ch, F) > TEXT_W)) break; s += ch; }
+      fit = s.length;
+    }
+    out.push(p.slice(0, fit));
+    p = p.slice(fit).replace(/^ +/, "");
+  }
+  return out;
+}
+
+const lineHeight = l => {
+  const F = fontOf(l.style);
+  return (l.text ? wrapText(l.text, F).length * F.h : Math.floor(F.h / 2)) + ((l.style & 15) === L_BIG ? 4 : 0);
+};
+
+function drawLine(ctx, l, y) {
+  const style = l.style & 15, F = fontOf(style);
+  ctx.fillStyle = INK[style] || "#fff";
+  if (style === L_BIG) y += 2;
+  if (!l.text) y += Math.floor(F.h / 2);
+  for (const t of l.text ? wrapText(l.text, F) : []) {
+    drawText(ctx, t, Math.floor((LCD_W - textWidth(t, F)) / 2), y, F);
+    ctx.fillStyle = INK[style] || "#fff";
+    y += F.h;
+  }
+  return style === L_BIG ? y + 2 : y;
+}
+
+const dayName = (dn, withYear) => {
   const d = new Date(dn * 86400000);
   return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}${withYear ? ", " + d.getUTCFullYear() : ""}`;
+};
+const num = v => Math.floor(v).toLocaleString("en-US");
+
+function buildSlides(S) {
+  const slides = [];
+  let s;
+  const slide = () => slides.push(s = []);
+  const add = (style, text) => s.push({ style, text: String(text) });
+
+  slide();
+  add(L_DIM | GLUE, "Your");
+  add(L_BIG | GLUE, periodLabel(S));
+  add(L_HEAD, "Wrapped");
+  if (!S.plays) {
+    add(L_BODY, "");
+    if (S.itunes) {
+      add(L_BODY, "No plays counted here.");
+      add(L_DIM, S.kind === "exact" ? "Play counts didn't change between these two exports. Sync your iPod before exporting." : "No songs in this export have play counts for this period.");
+    } else {
+      add(L_BODY, "No plays logged for this period yet.");
+      add(L_DIM, "Turn on Playback Settings > Logging and check back after some listening.");
+    }
+    return slides;
+  }
+  add(L_BODY, "");
+  if (S.itunes) add(L_DIM, S.kind === "rough" ? "An estimate from iTunes play counts" : "From your iTunes play counts");
+  add(L_DIM, "Tap or click the screen to continue");
+
+  const min = Math.floor(S.totalMs / 60000);
+  slide();
+  add(L_DIM | GLUE, "You listened for");
+  add(L_BIG | GLUE, num(min));
+  add(L_HEAD, "minutes");
+  add(L_BODY, "");
+  add(L_BODY, min >= 1440 ? `That's ${Math.floor(min / 1440)}.${Math.floor(min % 1440 * 10 / 1440)} days of music.` : `That's ${Math.floor(min / 60)} hours of music.`);
+  add(L_DIM, `${num(S.plays)} plays across ${num(S.uniqueTracks)} songs`);
+  if (S.itunes) add(L_DIM, "(plays × song length)");
+
+  const A = S.artists[0];
+  if (A) {
+    slide();
+    add(L_DIM | GLUE, "Your top artist was");
+    add(L_BIG, A.name);
+    add(L_BODY, "");
+    add(L_BODY, `${num(A.ms / 60000)} minutes, ${num(A.plays)} plays`);
+    add(L_DIM, `${Math.floor(A.ms * 100 / S.totalMs)}% of everything you played`);
+    slide();
+    add(L_HEAD, "Top artists");
+    add(L_BODY, "");
+    S.artists.slice(0, 5).forEach((a, i) => add(L_BODY, `${i + 1}. ${a.name}  (${num(a.ms / 60000)} min)`));
+    add(L_BODY, "");
+    add(L_DIM, `${num(S.nArtists)} artists in total`);
+  }
+
+  const T = S.tracks[0];
+  if (T) {
+    slide();
+    add(L_DIM | GLUE, S.year || S.kind === "exact" ? "Your song of the year" : "Your most played song");
+    add(L_BIG | GLUE, T.title);
+    add(L_BODY, T.artist);
+    add(L_BODY, "");
+    add(L_DIM, `Played ${num(T.plays)} times`);
+    slide();
+    add(L_HEAD, "Top songs");
+    add(L_BODY, "");
+    S.tracks.slice(0, 5).forEach((t, i) => { add(L_BODY | GLUE, `${i + 1}. ${t.title}`); add(L_DIM, `${t.artist} - ${t.plays} plays`); });
+  }
+
+  if (S.albums[0]) {
+    slide();
+    add(L_HEAD, "Top albums");
+    add(L_BODY, "");
+    S.albums.slice(0, 5).forEach((a, i) => { add(L_BODY | GLUE, `${i + 1}. ${a.name}`); add(L_DIM, `${a.artist} - ${num(a.ms / 60000)} min`); });
+  }
+
+  if (!S.itunes) {  // iTunes has no per-play times
+    const top = a => a.indexOf(Math.max(...a));
+    const h = top(S.hour), d = top(S.wday), m = top(S.month);
+    slide();
+    add(L_HEAD, "Your listening clock");
+    add(L_BODY, "");
+    add(L_DIM | GLUE, "Peak hour");
+    add(L_BIG, `${h % 12 || 12} ${h < 12 ? "AM" : "PM"}`);
+    add(L_DIM | GLUE, "Favorite day");
+    add(L_BODY, DAYS[d]);
+    add(L_DIM | GLUE, "Biggest month");
+    add(L_BODY, `${MONTHS[m]} (${num(S.month[m] / 60)} min)`);
+    if (S.bestSec) {
+      slide();
+      add(L_HEAD, "Big days");
+      add(L_BODY, "");
+      add(L_DIM | GLUE, "Most listening in one day");
+      add(L_BIG | GLUE, dayName(S.bestDay, !S.year));
+      add(L_BODY, `${num(S.bestSec / 60)} minutes`);
+      add(L_BODY, "");
+      add(L_DIM | GLUE, "Longest streak");
+      add(L_BODY, `${S.streak} day${S.streak === 1 ? "" : "s"} in a row`);
+    }
+  }
+
+  slide();
+  add(L_HEAD, "By the numbers");
+  add(L_BODY, "");
+  add(L_BODY, `${num(S.uniqueTracks)} different songs`);
+  add(L_BODY, `${num(S.nArtists)} artists`);
+  add(L_BODY, `${num(S.nAlbums)} albums`);
+  if (S.kind !== "rough") add(L_BODY, `${num(S.skips)} skips`);
+  if (S.first) {
+    add(L_BODY, "");
+    add(L_DIM | GLUE, `First song of ${S.year ? "the year" : "your history"}:`);
+    add(L_BODY, S.first.title);
+  }
+  if (S.spokenSkipped) add(L_DIM, "(Audiobooks and podcasts not counted)");
+
+  if (S.itunes) {
+    slide();
+    add(L_HEAD, "About these numbers");
+    add(L_BODY, "");
+    add(L_BODY, S.kind === "rough"
+      ? `These are the songs you last played in ${S.year}, with their all-time play counts. Export your library again next year and drop both files in for an exact year.`
+      : S.kind === "exact" ? "Exact plays between your two exports, from the difference in play counts."
+      : "Every play iTunes has counted since each song was added.");
+    add(L_BODY, "");
+    add(L_DIM, "iTunes doesn't record when each play happened, so there's no listening clock or big days.");
+  }
+
+  slide();
+  add(L_HEAD, "That's a wrap");
+  add(L_BODY, "");
+  add(L_BODY, "Save any slide as a picture, or copy the summary as text.");
+  return slides;
 }
 
-function render() {
-  const S = mode === "itunes" ? computeItunes(period) : compute(entries, period);
-  const label = periodLabel(S);
-  const out = $("#out");
-  if (!S.plays) {
-    out.innerHTML = `<section class="band char empty"><div class="wrap"><span class="eyebrow">${esc(label)}</span>${S.itunes
-      ? `<p class="big name">No plays counted here.</p><p class="sub">${S.kind === "exact" ? "Play counts didn't change between these two exports. Sync your iPod before exporting, so its plays reach iTunes." : "No songs in this export have play counts for this period."}</p>`
-      : `<p class="big name">No plays logged here yet.</p><p class="sub">Turn on Settings, Playback Settings, Logging on the iPod, listen for a while, then drop the log in again.</p>`}</div></section>`;
-    $("#summary").textContent = ""; return;
+// slides too tall for the screen split into pages; continuation pages repeat the heading
+const hasHeading = s => s.length && (s[0].style & 15) === L_HEAD;
+function paginate(slides) {
+  const out = [];
+  slides.forEach((s, si) => {
+    const head = hasHeading(s) ? lineHeight(s[0]) + lineHeight(BLANK) : 0;
+    let i = 0;
+    while (i < s.length) {
+      const cont = i > 0;
+      if (cont) while (i < s.length && !s[i].text) i++;
+      if (i >= s.length) break;
+      const start = i;
+      let used = cont ? head : 0;
+      while (i < s.length) {
+        let j = i, group = 0;
+        do group += lineHeight(s[j]); while ((s[j++].style & GLUE) && j < s.length);
+        if (used + group > PAGE_AREA && i > start) break;
+        used += group; i = j;
+      }
+      out.push({ s, si, first: start, end: i, cont });
+    }
+  });
+  return out;
+}
+
+function drawPage(ctx, pages, idx) {
+  const pg = pages[idx], s = pg.s, head = pg.cont && hasHeading(s);
+  ctx.fillStyle = SLIDE_BG[pg.si % SLIDE_BG.length];
+  ctx.fillRect(0, 0, LCD_W, LCD_H);
+  let h = head ? lineHeight(s[0]) + lineHeight(BLANK) : 0;
+  for (let i = pg.first; i < pg.end; i++) h += lineHeight(s[i]);
+  let y = Math.max(2, Math.floor((LCD_H - 10 - h) / 2));
+  if (head) { y = drawLine(ctx, s[0], y); y = drawLine(ctx, BLANK, y); }
+  for (let i = pg.first; i < pg.end; i++) y = drawLine(ctx, s[i], y);
+  // page dots
+  ctx.fillStyle = "#fff";
+  let dot = 4, gap = 4;
+  if (pages.length * (dot + gap) > LCD_W - 8) { dot = 3; gap = 2; }
+  let x = Math.max(0, Math.floor((LCD_W - pages.length * (dot + gap) + gap) / 2));
+  for (let i = 0; i < pages.length; i++, x += dot + gap) {
+    if (i === idx) ctx.fillRect(x, LCD_H - 7, dot, dot);
+    else { ctx.fillRect(x, LCD_H - 7, dot, 1); ctx.fillRect(x, LCD_H - 8 + dot, dot, 1); ctx.fillRect(x, LCD_H - 7, 1, dot); ctx.fillRect(x + dot - 1, LCD_H - 7, 1, dot); }
   }
-  const min = S.totalMs / 60000, A = S.artists[0], T = S.tracks[0];
-  const clock = !S.itunes;  // iTunes has no per-play times
-  const h = clock ? S.hour.indexOf(Math.max(...S.hour)) : 0, h12 = h % 12 || 12;
-  const wd = clock ? S.wday.indexOf(Math.max(...S.wday)) : 0, mo = clock ? S.month.indexOf(Math.max(...S.month)) : 0;
-  const hours = [...Array(24).keys()].map(i => (i % 12 || 12) + (i < 12 ? "a" : "p"));
-  const yearly = S.year || S.kind === "exact";
-  out.innerHTML = `
-  <section class="band green"><div class="wrap">
-    <span class="eyebrow">${esc(label)} Wrapped${isSample ? " &middot; sample data" : ""}${S.kind === "rough" ? " &middot; estimate" : ""}</span>
-    <p class="big">${fmt(min)}</p>
-    <p class="sub">minutes of music${S.itunes ? " (plays × song length)" : ""}, about ${min >= 1440 ? (min / 1440).toFixed(1) + " days" : fmt(min / 60) + " hours"}. ${fmt(S.plays)} plays across ${fmt(S.uniqueTracks)} songs.</p>
-  </div></section>
-  <section class="band violet"><div class="wrap">
-    <span class="eyebrow">Top artist</span>
-    <p class="big name">${esc(A.name)}</p>
-    <p class="sub">${fmt(A.ms / 60000)} minutes, ${fmt(A.plays)} plays, ${Math.round(A.ms / S.totalMs * 100)}% of everything you played.</p>
-  </div></section>
-  <section class="band char"><div class="wrap cols">
-    <div><span class="eyebrow">Top artists</span>${rankList(S.artists, "ms", a => `${fmt(a.ms / 60000)} min · ${fmt(a.plays)} plays`)}</div>
-    <div><span class="eyebrow">Top albums</span>${rankList(S.albums, "ms", a => `${a.artist} · ${fmt(a.ms / 60000)} min`)}</div>
-  </div></section>
-  <section class="band magenta"><div class="wrap cols">
-    <div><span class="eyebrow">${yearly ? "Song of the year" : "Most played song"}</span>
-      <p class="big name" style="margin-top:6px">${esc(T.title)}</p>
-      <p class="sub">${esc(T.artist)} · played ${fmt(T.plays)} times</p></div>
-    <div><span class="eyebrow">Top songs</span>${rankList(S.tracks, "plays", t => `${t.artist} · ${fmt(t.plays)} plays`)}</div>
-  </div></section>${clock ? `
-  <section class="band orange"><div class="wrap">
-    <span class="eyebrow">Your listening clock</span>
-    <div class="facts">
-      <div><b>${h12} ${h < 12 ? "AM" : "PM"}</b><span>peak hour</span></div>
-      <div><b>${DAYS[wd]}</b><span>favourite day</span></div>
-      <div><b>${MONTHS[mo]}</b><span>biggest month · ${fmt(S.month[mo] / 60)} min</span></div>
-    </div>
-    <div class="chart bars">${barChart(S.hour, hours, 3)}</div>
-    <div class="chart bars">${barChart(S.month, MONTHS.map(m => m.slice(0, 3)), 1)}</div>
-  </div></section>
-  <section class="band blue"><div class="wrap">
-    <span class="eyebrow">Big days</span>
-    <div class="facts">
-      <div><b>${dayName(S.bestDay, !period)}</b><span>most listening in a day · ${fmt(S.bestSec / 60)} min</span></div>
-      <div><b>${S.streak}</b><span>day streak, longest run in a row</span></div>
-      <div><b>${S.day.size}</b><span>days with music</span></div>
-    </div>
-    <div class="chart">${heatmap(S)}</div>
-  </div></section>` : ""}
-  <section class="band char"><div class="wrap">
-    <span class="eyebrow">By the numbers</span>
-    <div class="facts">
-      <div><b>${fmt(S.uniqueTracks)}</b><span>different songs</span></div>
-      <div><b>${fmt(S.nArtists)}</b><span>artists</span></div>
-      <div><b>${fmt(S.nAlbums)}</b><span>albums</span></div>
-      ${S.kind !== "rough" ? `<div><b>${fmt(S.skips)}</b><span>${S.itunes ? "skips (as iTunes counts them)" : "skips under 30 s"}</span></div>` : ""}
-    </div>
-    ${S.first ? `<p class="sub">First song of ${period ? "the year" : "your history"}: <strong style="color:var(--on-band)">${esc(S.first.title)}</strong> by ${esc(S.first.artist)}, ${dayName(Math.floor(S.firstTs / 86400), true)}.</p>` : ""}
-    ${S.spokenSkipped ? `<p class="sub">Audiobooks and podcasts are not counted.</p>` : ""}
-  </div></section>${S.itunes ? `
-  <section class="band blue"><div class="wrap">
-    <span class="eyebrow">About these numbers</span>
-    <p class="sub">${S.kind === "rough"
-      ? `This is an estimate. It shows the songs you last played in ${S.year}, but with their all-time play counts, so songs you also loved in earlier years rank higher than they should. Export your library again next year and drop both files in for an exact year.`
-      : S.kind === "exact"
-      ? `Exact plays between your two exports: the difference in iTunes play counts. Minutes assume each play was a full listen.`
-      : `Every play iTunes has counted since the song was added. Minutes assume each play was a full listen.`}</p>
-    <p class="sub">iTunes doesn't record when each play happened, so there's no listening clock, busiest day or streak. The Rockbox plugin logs those.</p>
-  </div></section>` : ""}`;
-  $("#summary").textContent = [
-    `${label} Wrapped (${S.itunes ? "iTunes" : "Rockbox"}${S.kind === "rough" ? ", estimate" : ""})`, `${fmt(min)} minutes · ${fmt(S.plays)} plays · ${fmt(S.uniqueTracks)} songs`, "",
-    "Top artists:", ...S.artists.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} (${fmt(a.ms / 60000)} min)`), "",
+}
+
+/* ---------- the screen on the page ---------- */
+const lcd = $("#lcd"), lcdCtx = lcd.getContext("2d");
+let pages = [], cur = 0, curS = null;
+
+function render() {
+  const S = curS = mode === "itunes" ? computeItunes(period) : compute(entries, period);
+  pages = paginate(buildSlides(S));
+  cur = 0;
+  show();
+  $("#summary").textContent = S.plays ? summaryText(S) : "";
+}
+
+function show() {
+  cur = Math.max(0, Math.min(pages.length - 1, cur));
+  drawPage(lcdCtx, pages, cur);
+  $("#count").textContent = `${cur + 1} of ${pages.length}`;
+  $("#prev").disabled = cur === 0;
+  $("#next").disabled = cur === pages.length - 1;
+  const pg = pages[cur];
+  $("#slidetext").textContent = (pg.cont && hasHeading(pg.s) ? [pg.s[0]] : []).concat(pg.s.slice(pg.first, pg.end)).map(l => l.text).filter(Boolean).join(". ");
+}
+const go = d => { cur += d; show(); };
+
+function summaryText(S) {
+  const top = a => a.indexOf(Math.max(...a));
+  const lines = [
+    `${periodLabel(S)} Wrapped (${S.itunes ? "iTunes" : "Rockbox"}${S.kind === "rough" ? ", estimate" : ""})`,
+    `${num(S.totalMs / 60000)} minutes, ${num(S.plays)} plays, ${num(S.uniqueTracks)} songs`, "",
+    "Top artists:", ...S.artists.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} (${num(a.ms / 60000)} min)`), "",
     "Top songs:", ...S.tracks.slice(0, 5).map((t, i) => `${i + 1}. ${t.title} - ${t.artist} (${t.plays} plays)`), "",
     "Top albums:", ...S.albums.slice(0, 5).map((a, i) => `${i + 1}. ${a.name} - ${a.artist}`),
-    ...(clock ? ["",
-      `Peak hour ${h12} ${h < 12 ? "AM" : "PM"} · favourite day ${DAYS[wd]} · biggest month ${MONTHS[mo]}`,
-      `Biggest day ${dayName(S.bestDay, true)} (${fmt(S.bestSec / 60)} min) · longest streak ${S.streak} days`] : []),
-  ].join("\n");
+  ];
+  if (!S.itunes) {
+    const h = top(S.hour);
+    lines.push("", `Peak hour ${h % 12 || 12} ${h < 12 ? "AM" : "PM"}, favorite day ${DAYS[top(S.wday)]}, biggest month ${MONTHS[top(S.month)]}`,
+      `Biggest day ${dayName(S.bestDay, true)} (${num(S.bestSec / 60)} min), longest streak ${S.streak} days`);
+  }
+  return lines.join("\n");
 }
+
+$("#prev").addEventListener("click", () => go(-1));
+$("#next").addEventListener("click", () => go(1));
+// click or tap: left third goes back, the rest forward; swipes work too
+let downX = null, swiped = false;
+lcd.addEventListener("pointerdown", e => { downX = e.clientX; swiped = false; });
+lcd.addEventListener("pointerup", e => {
+  if (downX !== null && Math.abs(e.clientX - downX) > 40) { swiped = true; go(e.clientX < downX ? 1 : -1); }
+  downX = null;
+});
+lcd.addEventListener("click", e => {
+  if (swiped) return;
+  const r = lcd.getBoundingClientRect();
+  go(e.clientX - r.left < r.width / 3 ? -1 : 1);
+});
+document.addEventListener("keydown", e => {
+  if (e.target.closest("input, textarea, select") || e.altKey || e.ctrlKey || e.metaKey) return;
+  const onScreen = e.target === lcd;
+  if (e.key === "ArrowRight" || (onScreen && (e.key === "ArrowDown" || e.key === " "))) { e.preventDefault(); go(1); }
+  else if (e.key === "ArrowLeft" || (onScreen && e.key === "ArrowUp")) { e.preventDefault(); go(-1); }
+});
+
+$("#save").addEventListener("click", () => {
+  const big = document.createElement("canvas");
+  big.width = LCD_W * 3; big.height = LCD_H * 3;
+  const c = big.getContext("2d");
+  c.imageSmoothingEnabled = false;
+  c.drawImage(lcd, 0, 0, big.width, big.height);
+  big.toBlob(b => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(b);
+    a.download = `rockbox-wrapped-${periodLabel(curS).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${cur + 1}.png`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+});
+
+// whole-pixel scaling while there's room, otherwise fill the width
+function sizeScreen() {
+  const room = $("#device").clientWidth - 20;
+  lcd.style.width = (room >= 640 ? 640 : Math.max(room, 200)) + "px";
+}
+addEventListener("resize", sizeScreen);
+sizeScreen();
+
+// the wordmark, in the plugin's headline font
+(() => {
+  const c = $("#wordmark"), text = "Rockbox Wrapped", F = FONTS.big;
+  c.width = textWidth(text, F); c.height = F.h;
+  c.style.setProperty("--w", c.width);
+  const x = c.getContext("2d");
+  x.fillStyle = "#ffe15a";
+  drawText(x, text, 0, 0, F);
+})();
 
 function renderControls() {
   if (mode === "itunes") return renderItunesControls();
