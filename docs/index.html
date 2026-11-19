@@ -26,7 +26,7 @@
 }
 * { box-sizing: border-box }
 body { margin: 0; background: var(--page); color: var(--text); font: 400 1.125rem/1.6 var(--serif) }
-.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.wrap { max-width: 1200px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
 a { color: inherit; text-decoration-color: var(--gold); text-decoration-thickness: 2px; text-underline-offset: 3px }
 a:hover { color: var(--gold) }
 code { font: inherit; font-weight: 650 }
@@ -73,7 +73,7 @@ input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0 }
 
 #device { display: grid; gap: 14px; justify-items: center; min-width: 0 }
 .screen { background: #000; padding: 10px; border-radius: 12px; line-height: 0 }
-#lcd { display: block; width: 640px; max-width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; cursor: pointer; touch-action: pan-y }
+#lcd { display: block; width: 800px; max-width: 100%; aspect-ratio: 4 / 3; image-rendering: pixelated; cursor: pointer; touch-action: pan-y }
 .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center }
 #count { min-width: 5.5em; text-align: center; color: var(--dim); font-variant-numeric: tabular-nums }
 .controls .save { margin-left: 8px }
@@ -95,7 +95,7 @@ details p { margin: 10px 0 0; max-width: 68ch }
   <div>
     <h1><canvas id="wordmark" aria-hidden="true"></canvas><span class="sr">Rockbox Wrapped</span></h1>
     <p class="slogan">Your stats on your player of choice.</p>
-    <p>My iPod runs Rockbox, and I wanted a Wrapped for it like the one Spotify hands out every December. So I wrote a plugin that builds one on the iPod itself, from the log Rockbox keeps of everything it plays. This page reads the same log and draws the same slides, just bigger.</p>
+    <p>My iPod is a completely offline device, but I wanted a Wrapped for it like the one Spotify sends out every December. Since my iPod runs Rockbox, I wrote a plugin that generates a Wrapped on the iPod itself from the playback log that Rockbox keeps. This page reads the same log and draws the same slides, just bigger.</p>
     <nav class="links" aria-label="Project">
       <a href="https://github.com/michaelmeixner/rockbox_wrapped/releases/latest">Get the iPod plugin</a>
       <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>
@@ -110,13 +110,13 @@ details p { margin: 10px 0 0; max-width: 68ch }
     <div class="drop" id="drop">
       <p>Drop these from the <code>.rockbox</code> folder on your iPod, as many as you have:</p>
       <ul>
-        <li><span>wrapped_history.log</span><small>best, it keeps your tags</small></li>
+        <li><span>wrapped_history.log</span><small>(best option if you have it; it keeps your tags)</small></li>
         <li><span>playback.log</span></li>
-        <li><span>playback_0001.log</span><small>and the other numbered ones</small></li>
+        <li><span>playback_0001.log</span><small>and any other numbered ones</small></li>
       </ul>
       <label class="btn primary" for="file">Choose files</label>
       <input type="file" id="file" multiple accept=".log,.txt,.xml,text/plain,text/xml,application/xml">
-      <p>On the stock iPod software? Drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</p>
+      <p>If you use the stock iPod software, drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</p>
     </div>
     <div class="status" id="status" aria-live="polite"></div>
     <div class="periods" id="years" role="group" aria-label="Period"></div>
@@ -144,15 +144,15 @@ details p { margin: 10px 0 0; max-width: 68ch }
     <pre id="summary" aria-label="Summary text"></pre>
     <details>
       <summary>How plays are counted</summary>
-      <p>The same rules as the iPod plugin. A play is 30 seconds or more, and stopping and resuming the same track counts once. Audiobooks and podcasts are left out: anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code>.</p>
-      <p>Artist, album and title come from the tags the plugin saves in <code>wrapped_history.log</code>. A plain <code>playback.log</code> only stores file paths, so for those plays they come from your <code>/Artist/Album/Track</code> folders.</p>
+      <p>This page uses the same rules as the iPod plugin: a play is 30 seconds or more, and stopping and resuming the same track counts once. Audiobooks and podcasts are left out; that means anything with an audiobook, spoken word or podcast genre, inside an <code>Audiobooks</code> or <code>Podcasts</code> folder, or saved as <code>.m4b</code> is not counted.</p>
+      <p>The artist, album, and title come from the tags the plugin saves in <code>wrapped_history.log</code>. A plain <code>playback.log</code> only stores file paths, so those plays come from your <code>/Artist/Album/Track</code> folders.</p>
     </details>
     <details>
       <summary>How iTunes numbers work</summary>
-      <p>iTunes keeps one running play count per song and the date of its last play, not a record of each play. One export gives you all time, or an estimate for a year: the songs last played that year, with their all-time counts. Two exports give exact plays between them, from the difference in counts.</p>
+      <p>iTunes keeps one running play count per song and the date of its last play; it doesn't keep a record of each play. One export gives you the data from all time. However, two exports allow you to count plays between them from the difference in counts. You can use this to estimate your plays for a specific period.</p>
       <p>Minutes are plays times song length. Sync your iPod before exporting so its plays reach iTunes. Videos, podcasts and audiobooks are left out.</p>
     </details>
-    <p class="credit">Rockbox Wrapped by Michael Meixner, GPL v2 or later. <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>. Slides are drawn with the Adobe Helvetica bitmap fonts that ship with Rockbox (copyright Adobe Systems and Digital Equipment Corporation; notice in <a href="fonts.js">fonts.js</a>). Not affiliated with Rockbox, Apple or Spotify.</p>
+    <p class="credit">Rockbox Wrapped by Michael Meixner, GPL v2 or later. <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>. Slides are drawn with the Adobe Helvetica bitmap fonts that ship with Rockbox (copyright Adobe Systems and Digital Equipment Corporation; notice in <a href="fonts.js">fonts.js</a>). Not affiliated with Rockbox, Apple, or Spotify.</p>
   </div>
 </footer>
 
@@ -750,10 +750,12 @@ $("#save").addEventListener("click", () => {
   });
 });
 
-// whole-pixel scaling while there's room, otherwise fill the width
+// up to 800 px (2.5 iPod pixels each), leaving 280 px for the drop zone beside it on wide screens
 function sizeScreen() {
-  const room = $("#device").clientWidth - 20;
-  lcd.style.width = (room >= 640 ? 640 : Math.max(room, 200)) + "px";
+  const p = $(".player"), cs = getComputedStyle(p);
+  let room = p.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 20;
+  if (innerWidth > 1000) room -= 48 + 280;
+  lcd.style.width = Math.max(200, Math.min(800, room)) + "px";
 }
 addEventListener("resize", sizeScreen);
 sizeScreen();
