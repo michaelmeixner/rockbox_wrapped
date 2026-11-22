@@ -36,7 +36,8 @@ code { font: inherit; font-weight: 650 }
 /* intro and photo */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 8px 56px; align-items: center; padding-block: 40px 16px }
 .hero h1 { margin: 0 0 22px; line-height: 0 }
-#wordmark { width: calc(var(--w) * 2px); max-width: 100%; image-rendering: pixelated }
+/* the title is Selant by Jorge Villarreal, as outlines (the font's license doesn't allow shipping the font file) */
+.hero .title { display: block; width: min(100%, 560px); height: auto; color: var(--gold) }
 .slogan { margin: 0 0 18px; font-size: clamp(1.6rem, 3.6vw, 2.2rem); line-height: 1.15; font-weight: 600; max-width: 22ch }
 .hero p { max-width: 50ch }
 .links { display: flex; flex-wrap: wrap; gap: 6px 24px; margin-top: 22px; font-weight: 650 }
@@ -93,11 +94,11 @@ details p { margin: 10px 0 0; max-width: 68ch }
 
 <header class="wrap hero">
   <div>
-    <h1><canvas id="wordmark" aria-hidden="true"></canvas><span class="sr">Rockbox Wrapped</span></h1>
+    <h1><svg class="title" viewBox="1 -871 6172 1048" role="img" aria-label="Rockbox Wrapped"><path d="M264 -695C177 -520 91 -345 5 -171C5 -114 5 -57 5 0C63 0 121 0 179 0C179 -55 179 -110 179 -164C239 -147 283 -91 283 -25C283 -17 283 -9 283 0C308 -51 333 -102 358 -152C370 -177 362 -205 342 -221C388 -250 426 -292 451 -343C481 -402 510 -461 539 -521C545 -531 550 -542 555 -552C562 -567 565 -582 565 -596C565 -648 523 -695 466 -695C399 -695 331 -695 264 -695ZM393 -343C321 -343 250 -343 179 -343C179 -402 179 -461 179 -521C250 -521 321 -521 393 -521C442 -521 482 -481 482 -432C482 -383 442 -343 393 -343ZM382 -170C382 -167 382 -163 382 -159C382 -71 453 5e-05 541 6e-05C580 6e-05 620 6e-05 660 8e-05C728 -139 796 -277 865 -416C879 -444 885 -473 885 -501C885 -603 804 -695 692 -695C675 -695 658 -695 641 -695C555 -520 468 -345 382 -170ZM604 -174C533 -174 475 -232 475 -303C475 -374 533 -432 604 -432C622 -432 639 -432 656 -432C728 -432 785 -374 785 -303C785 -232 728 -174 656 -174C639 -174 622 -174 604 -174ZM936 -292C936 -368 936 -445 936 -521C983 -521 1030 -521 1077 -521C1150 -521 1223 -521 1296 -521C1301 -530 1306 -540 1310 -549C1318 -564 1321 -580 1321 -594C1321 -647 1278 -695 1220 -695C1153 -695 1087 -695 1020 -695C934 -520 848 -345 762 -171C762 -166 762 -162 762 -158C762 -71 832 0 919 0C925 0 930 0 936 0C970 0 1005 0 1039 0C1068 -58 1096 -116 1125 -174C1097 -174 1070 -174 1042 -174C983 -174 936 -222 936 -281C936 -285 936 -288 936 -292ZM1503 -452C1503 -394 1456 -348 1399 -347C1399 -463 1399 -579 1399 -695C1341 -577 1283 -460 1225 -342C1225 -286 1225 -230 1225 -174C1225 -78 1303 9e-05 1399 0C1399 -53 1399 -106 1399 -158C1451 -136 1487 -85 1487 -25C1487 -17 1487 -8 1487 0C1512 -51 1537 -101 1562 -152C1581 -189 1554 -232 1512 -232C1511 -232 1509 -232 1508 -232C1604 -251 1677 -336 1677 -438C1677 -465 1677 -493 1677 -521C1677 -617 1599 -695 1503 -695C1503 -614 1503 -533 1503 -452ZM1582 -867C1582 -813 1582 -758 1582 -704C1640 -704 1698 -704 1756 -704C1751 -795 1675 -867 1583 -867C1583 -867 1582 -867 1582 -867ZM1841 -694C1754 -520 1668 -345 1582 -170C1582 -114 1582 -57 1582 0C1674 0 1767 0 1859 0C1928 -139 1996 -277 2065 -416C2079 -444 2085 -473 2085 -501C2085 -602 2004 -694 1892 -694C1875 -694 1858 -694 1841 -694ZM1856 -174C1823 -174 1789 -174 1756 -174C1756 -260 1756 -346 1756 -432C1789 -432 1823 -432 1856 -432C1928 -432 1985 -374 1985 -303C1985 -232 1928 -174 1856 -174ZM1756 -588C1698 -470 1640 -353 1582 -236C1582 -225 1582 -213 1582 -202C1640 -319 1698 -436 1756 -554C1756 -565 1756 -576 1756 -588ZM1756 -658C1698 -541 1640 -424 1582 -306C1582 -295 1582 -284 1582 -272C1640 -390 1698 -507 1756 -624C1756 -635 1756 -647 1756 -658ZM1756 -694C1750 -694 1744 -694 1739 -694C1687 -588 1634 -483 1582 -377C1582 -365 1582 -354 1582 -343C1640 -460 1698 -577 1756 -694C1756 -694 1756 -694 1756 -694ZM1704 -694C1663 -612 1623 -530 1582 -447C1582 -436 1582 -424 1582 -413C1628 -507 1675 -601 1721 -694C1715 -694 1710 -694 1704 -694ZM1669 -694C1640 -635 1611 -576 1582 -517C1582 -506 1582 -495 1582 -483C1617 -554 1651 -624 1686 -694C1681 -694 1675 -694 1669 -694ZM1635 -694C1617 -659 1600 -623 1582 -588C1582 -576 1582 -565 1582 -554C1605 -601 1628 -648 1651 -694C1646 -694 1640 -694 1635 -694ZM1600 -694C1594 -682 1588 -670 1582 -658C1582 -647 1582 -635 1582 -624C1594 -648 1605 -671 1617 -694C1611 -694 1606 -694 1600 -694ZM1960 -170C1960 -167 1960 -163 1960 -159C1960 -71 2031 5e-05 2119 6e-05C2158 6e-05 2198 6e-05 2238 8e-05C2306 -139 2374 -277 2443 -416C2457 -444 2463 -473 2463 -501C2463 -603 2382 -695 2270 -695C2253 -695 2236 -695 2219 -695C2133 -520 2046 -345 1960 -170ZM2182 -174C2111 -174 2053 -232 2053 -303C2053 -374 2111 -432 2182 -432C2200 -432 2217 -432 2234 -432C2306 -432 2363 -374 2363 -303C2363 -232 2306 -174 2234 -174C2217 -174 2200 -174 2182 -174ZM2828 -435C2871 -521 2914 -608 2957 -695C2899 -695 2841 -695 2784 -695C2752 -631 2721 -567 2689 -503C2658 -567 2626 -631 2595 -695C2566 -637 2538 -579 2509 -521C2509 -520 2509 -519 2509 -518C2523 -490 2536 -462 2550 -435C2583 -367 2583 -289 2550 -221C2536 -194 2523 -166 2509 -139C2509 -92 2509 -46 2509 0C2544 0 2579 0 2614 0C2639 -51 2664 -102 2689 -153C2714 -102 2739 -51 2765 0C2793 -59 2822 -117 2851 -176C2843 -191 2836 -206 2828 -221C2795 -289 2795 -367 2828 -435ZM3382 0C3412 -58 3442 -116 3472 -174C3502 -116 3531 -58 3561 0C3619 -118 3677 -235 3735 -352C3735 -467 3735 -581 3735 -695C3677 -695 3619 -695 3561 -695C3561 -521 3561 -347 3561 -174C3531 -231 3502 -289 3472 -346C3442 -289 3412 -231 3382 -174C3382 -347 3382 -521 3382 -695C3324 -578 3266 -460 3208 -343C3208 -229 3208 -114 3208 0C3266 0 3324 0 3382 0ZM3923 -695C3837 -520 3751 -345 3665 -170C3665 -76 3741 6e-05 3835 8e-05C3836 8e-05 3837 8e-05 3839 9e-05C3839 -174 3839 -347 3839 -521C3872 -521 3906 -521 3939 -521C4036 -521 4113 -443 4113 -347C4147 -415 4181 -484 4215 -552C4222 -566 4225 -581 4225 -596C4225 -648 4183 -695 4126 -695C4058 -695 3991 -695 3923 -695ZM4131 -340C4131 -285 4131 -229 4131 -174C4131 -78 4208 0 4304 0C4304 -58 4304 -115 4304 -173C4334 -173 4363 -173 4393 -173C4393 -115 4393 -58 4393 0C4451 -117 4509 -235 4567 -352C4567 -379 4567 -406 4567 -432C4567 -577 4449 -695 4304 -695C4246 -576 4188 -458 4131 -340ZM4304 -347C4304 -405 4304 -463 4304 -521C4353 -521 4393 -481 4393 -432C4393 -404 4393 -375 4393 -347C4363 -347 4334 -347 4304 -347ZM4752 -694C4665 -519 4579 -345 4493 -170C4493 -56 4493 59 4493 173C4493 173 4494 173 4494 173C4589 173 4667 96 4667 0C4701 0 4736 0 4770 0C4839 -138 4907 -277 4976 -416C4989 -443 4996 -472 4996 -501C4996 -602 4915 -694 4803 -694C4786 -694 4769 -694 4752 -694ZM4767 -174C4734 -174 4700 -174 4667 -174C4667 -260 4667 -346 4667 -432C4700 -432 4734 -432 4767 -432C4839 -432 4896 -374 4896 -303C4896 -231 4839 -174 4767 -174ZM5136 -694C5049 -519 4963 -345 4877 -170C4877 -56 4877 59 4877 173C4877 173 4878 173 4878 173C4973 173 5051 96 5051 0C5085 0 5120 0 5154 0C5223 -138 5291 -277 5360 -416C5373 -443 5380 -472 5380 -501C5380 -602 5299 -694 5187 -694C5170 -694 5153 -694 5136 -694ZM5151 -174C5118 -174 5084 -174 5051 -174C5051 -260 5051 -346 5051 -432C5084 -432 5118 -432 5151 -432C5223 -432 5280 -374 5280 -303C5280 -231 5223 -174 5151 -174ZM5517 -695C5431 -520 5345 -345 5259 -171C5259 -166 5259 -162 5259 -158C5259 -71 5329 0 5416 0C5456 0 5496 0 5536 0C5565 -58 5593 -116 5622 -174C5590 -174 5558 -174 5525 -174C5474 -174 5433 -216 5433 -267C5433 -292 5433 -317 5433 -343C5523 -343 5614 -343 5705 -343C5738 -410 5771 -477 5804 -544C5812 -559 5815 -574 5815 -590C5816 -645 5771 -695 5710 -695C5646 -695 5582 -695 5517 -695ZM5433 -432C5433 -462 5433 -491 5433 -521C5508 -521 5584 -521 5660 -521C5709 -521 5749 -481 5749 -432C5644 -432 5538 -432 5433 -432ZM5995 -694C5963 -694 5932 -694 5900 -694C5813 -520 5727 -345 5641 -170C5641 -76 5717 0 5811 0C5813 0 5814 0 5815 0C5849 0 5884 0 5918 0C6002 -169 6086 -339 6169 -508C6169 -628 6169 -747 6169 -867C6169 -867 6168 -867 6168 -867C6073 -867 5995 -790 5995 -694ZM5859 -174C5787 -174 5730 -232 5730 -303C5730 -374 5787 -432 5859 -432C5904 -432 5950 -432 5995 -432C5995 -346 5995 -260 5995 -174C5950 -174 5904 -174 5859 -174Z" fill="currentColor"/></svg></h1>
     <p class="slogan">Your stats on your player of choice.</p>
-    <p>My iPod is a completely offline device, but I wanted a Wrapped for it like the one Spotify sends out every December. Since my iPod runs Rockbox, I wrote a plugin that generates a Wrapped on the iPod itself from the playback log that Rockbox keeps. This page reads the same log and draws the same slides, just bigger.</p>
+    <p>My iPod is a completely offline device, but I wanted a Wrapped for it like the one Spotify sends out every December. Since my iPod runs Rockbox, I wrote a plugin that generates a Wrapped on the device itself from the playback log that Rockbox keeps. This page reads the same log and draws the same slides, just bigger.</p>
     <nav class="links" aria-label="Project">
-      <a href="https://github.com/michaelmeixner/rockbox_wrapped/releases/latest">Get the iPod plugin</a>
+      <a href="https://github.com/michaelmeixner/rockbox_wrapped/releases/latest">Get the plugin</a>
       <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>
     </nav>
   </div>
@@ -108,7 +109,7 @@ details p { margin: 10px 0 0; max-width: 68ch }
   <section class="side" aria-labelledby="yours">
     <h2 id="yours">See yours</h2>
     <div class="drop" id="drop">
-      <p>Drop these from the <code>.rockbox</code> folder on your iPod, as many as you have:</p>
+      <p>Drop these from the <code>.rockbox</code> folder on your device, as many as you have:</p>
       <ul>
         <li><span>wrapped_history.log</span><small>(best option if you have it; it keeps your tags)</small></li>
         <li><span>playback.log</span></li>
@@ -116,7 +117,7 @@ details p { margin: 10px 0 0; max-width: 68ch }
       </ul>
       <label class="btn primary" for="file">Choose files</label>
       <input type="file" id="file" multiple accept=".log,.txt,.xml,text/plain,text/xml,application/xml">
-      <p>If you use the stock iPod software, drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</p>
+      <p>If you use the stock iTunes/iPod workflow, drop an iTunes or Music library export instead (File, Library, Export Library). Two exports a year apart give your exact plays for that year.</p>
     </div>
     <div class="status" id="status" aria-live="polite"></div>
     <div class="periods" id="years" role="group" aria-label="Period"></div>
@@ -152,7 +153,7 @@ details p { margin: 10px 0 0; max-width: 68ch }
       <p>iTunes keeps one running play count per song and the date of its last play; it doesn't keep a record of each play. One export gives you the data from all time. However, two exports allow you to count plays between them from the difference in counts. You can use this to estimate your plays for a specific period.</p>
       <p>Minutes are plays times song length. Sync your iPod before exporting so its plays reach iTunes. Videos, podcasts and audiobooks are left out.</p>
     </details>
-    <p class="credit">Rockbox Wrapped by Michael Meixner, GPL v2 or later. <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>. Slides are drawn with the Adobe Helvetica bitmap fonts that ship with Rockbox (copyright Adobe Systems and Digital Equipment Corporation; notice in <a href="fonts.js">fonts.js</a>). Not affiliated with Rockbox, Apple, or Spotify.</p>
+    <p class="credit">Rockbox Wrapped by Michael Meixner, GPL v2 or later. <a href="https://github.com/michaelmeixner/rockbox_wrapped">Source on GitHub</a>. Slides are drawn with the Adobe Helvetica bitmap fonts that ship with Rockbox (copyright Adobe Systems and Digital Equipment Corporation; notice in <a href="fonts.js">fonts.js</a>). Title set in Selant by Jorge Villarreal. Not affiliated with Rockbox, Apple, or Spotify.</p>
   </div>
 </footer>
 
@@ -759,16 +760,6 @@ function sizeScreen() {
 }
 addEventListener("resize", sizeScreen);
 sizeScreen();
-
-// the wordmark, in the plugin's headline font
-(() => {
-  const c = $("#wordmark"), text = "Rockbox Wrapped", F = FONTS.big;
-  c.width = textWidth(text, F); c.height = F.h;
-  c.style.setProperty("--w", c.width);
-  const x = c.getContext("2d");
-  x.fillStyle = "#ffe15a";
-  drawText(x, text, 0, 0, F);
-})();
 
 function renderControls() {
   if (mode === "itunes") return renderItunesControls();
