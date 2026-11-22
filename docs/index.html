@@ -17,10 +17,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400&display=swap">
 <style>
-/* one dark page, the colour of the desk in the photo, so the screen does the talking */
+/* dark page */
 :root {
-  --page: #1b1b1b; --text: #ecebe6; --dim: #a4a39e; --line: #3b3b39; --well: #242423;
-  --gold: #ffe15a;  /* the plugin's heading colour */
+  --page: #2c1c1c; --text: #ecebe6; --dim: #a4a39e; --line: #3b3b39; --well: #1f0404;
+  --gold: #ffe15a;  /* heading color from plugin */
   --serif: "Newsreader", Georgia, serif;
   color-scheme: dark;
 }
@@ -36,7 +36,7 @@ code { font: inherit; font-weight: 650 }
 /* intro and photo */
 .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 400px); gap: 8px 56px; align-items: center; padding-block: 40px 16px }
 .hero h1 { margin: 0 0 22px; line-height: 0 }
-/* the title is Selant by Jorge Villarreal, as outlines (the font's license doesn't allow shipping the font file) */
+/* the title is Selant by Jorge Villarreal as outlines (the font's license doesn't allow shipping the font file) */
 .hero .title { display: block; width: min(100%, 560px); height: auto; color: var(--gold) }
 .slogan { margin: 0 0 18px; font-size: clamp(1.6rem, 3.6vw, 2.2rem); line-height: 1.15; font-weight: 600; max-width: 22ch }
 .hero p { max-width: 50ch }
@@ -47,7 +47,7 @@ code { font: inherit; font-weight: 650 }
   .photo { max-width: 340px; margin: 0 auto }
 }
 
-/* the screen and what feeds it */
+/* player screen and data */
 .player { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px 48px; align-items: start; padding-block: 32px 56px }
 @media (max-width: 1000px) { .player { grid-template-columns: minmax(0, 1fr) } #device { order: -1 } }
 .player h2 { margin: 0 0 14px; font-size: 1.6rem; font-weight: 650 }
@@ -189,7 +189,7 @@ function parseText(txt, map) {
 
 const tagSet = s => !!s && s !== "<Untagged>";
 
-// mirrors load_metadata() in wrapped.c: tags first, folder names as fallback
+// mirrors load_metadata() in wrapped.c: tags first; folder names as fallback
 function meta(path, tags) {
   const seg = path.split("/").filter(Boolean);
   let title = (seg[seg.length - 1] || path).replace(/\.[^.]+$/, "");
@@ -406,7 +406,7 @@ function sampleEntries() {
   return out.sort((a, b) => a.ts - b.ts);
 }
 
-/* ---------- iPod slides: build_slides, paginate and draw_page from wrapped.c ---------- */
+/* ---------- iPod slides: build_slides, paginate, and draw_page from wrapped.c ---------- */
 const LCD_W = 320, LCD_H = 240, PAGE_AREA = LCD_H - 12, TEXT_W = LCD_W - 8;
 const L_BODY = 0, L_HEAD = 1, L_BIG = 2, L_DIM = 3, GLUE = 16;
 const SLIDE_BG = ["#12783c", "#4628aa", "#aa1e5a", "#181818", "#b4500f", "#1450a0"];
@@ -435,7 +435,7 @@ function glyph(F, cp) {
   return g;
 }
 
-// characters the bitmap font lacks (CJK and so on) fall back to the browser's font
+// characters the bitmap font lacks fall back to the browser's font
 function charWidth(F, ch) {
   const g = glyph(F, ch.codePointAt(0));
   if (g) return g.dw;
@@ -452,7 +452,7 @@ function drawText(ctx, s, x, y, F) {
   }
 }
 
-// draw_wrapped: break at spaces to fit the screen, cutting words that are too long alone
+// draw_wrapped: break at spaces to fit the screen; cut words that are too long
 function wrapText(text, F) {
   const out = [];
   let p = text;
